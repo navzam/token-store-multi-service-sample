@@ -2,9 +2,46 @@
 @model IndexModel
 @{
     ViewData["Title"] = "Home page";
+    var loggedIn = (bool)ViewData["loggedIn"];
+    var isDropboxConnected = loggedIn && (bool)ViewData["isDropboxConnected"];
+    var isGraphConnected = loggedIn && (bool)ViewData["isGraphConnected"];
 }
 
 <div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://docs.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
+    <h1 class="display-4">Token Vault Multi Service Sample</h1>
+    @if (!loggedIn)
+    {
+        <p>You need to <a asp-page="/Login">sign in with AAD</a> use this app.</p>
+    }
+    else
+    {
+        <p>Thanks for signing in, @ViewData["userName"]. You can connect to external services below.</p>
+    }
+</div>
+
+<div class="text-left">
+    @if (loggedIn)
+    {
+        @if (isDropboxConnected)
+        {
+            <p>Dropbox status: Connected</p>
+            <p>Dropbox data: @ViewData["dropboxData"]</p>
+        }
+        else
+        {
+            <p>Dropbox status: Disconnected</p>
+            <p><a href="@ViewData["dropboxLoginUrl"]">Sign in to Dropbox</a></p>
+        }
+
+        @if (isGraphConnected)
+        {
+            <p>Graph status: Connected</p>
+            <p>Graph data: @ViewData["graphData"]</p>
+        }
+        else
+        {
+            <p>Graph status: Disconnected</p>
+            <p><a href="@ViewData["graphLoginUrl"]">Sign in to Graph</a></p>
+        }
+    }
 </div>
