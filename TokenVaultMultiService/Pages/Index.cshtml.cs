@@ -107,23 +107,23 @@ namespace TokenVaultMultiService.Pages
 
         #region Token Vault API methods
 
-        private async Task<Models.TokenVaultToken> EnsureTokenVaultTokenResource(string tokenVaultUrl, string serviceId, string tokenId, string tokenVaultApiKey)
+        private async Task<Models.TokenVaultToken> EnsureTokenVaultTokenResource(string tokenVaultUrl, string serviceId, string tokenId, string tokenVaultApiToken)
         {
-            var retrievedToken = await GetTokenResourceFromVault(tokenVaultUrl, serviceId, tokenId, tokenVaultApiKey);
+            var retrievedToken = await GetTokenResourceFromVault(tokenVaultUrl, serviceId, tokenId, tokenVaultApiToken);
             if (retrievedToken != null)
             {
                 return retrievedToken;
             }
 
-            return await CreateTokenResourceInVault(tokenVaultUrl, serviceId, tokenId, tokenVaultApiKey);
+            return await CreateTokenResourceInVault(tokenVaultUrl, serviceId, tokenId, tokenVaultApiToken);
         }
 
-        private async Task<Models.TokenVaultToken> CreateTokenResourceInVault(string tokenVaultUrl, string serviceId, string tokenId, string tokenVaultApiKey)
+        private async Task<Models.TokenVaultToken> CreateTokenResourceInVault(string tokenVaultUrl, string serviceId, string tokenId, string tokenVaultApiToken)
         {
             var uriBuilder = new UriBuilder(tokenVaultUrl);
             uriBuilder.Path = $"/services/{serviceId}/tokens/{tokenId}";
             var request = new HttpRequestMessage(HttpMethod.Put, uriBuilder.Uri);
-            request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", tokenVaultApiKey);
+            request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", tokenVaultApiToken);
             // TODO: might want a strongly-typed object
             var requestContent = JObject.FromObject(new
             {
@@ -140,12 +140,12 @@ namespace TokenVaultMultiService.Pages
             return tokenVaultToken;
         }
 
-        private async Task<Models.TokenVaultToken> GetTokenResourceFromVault(string tokenVaultUrl, string serviceId, string tokenId, string tokenVaultApiKey)
+        private async Task<Models.TokenVaultToken> GetTokenResourceFromVault(string tokenVaultUrl, string serviceId, string tokenId, string tokenVaultApiToken)
         {
             var uriBuilder = new UriBuilder(tokenVaultUrl);
             uriBuilder.Path = $"/services/{serviceId}/tokens/{tokenId}";
             var request = new HttpRequestMessage(HttpMethod.Get, uriBuilder.Uri);
-            request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", tokenVaultApiKey);
+            request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", tokenVaultApiToken);
 
             var response = await _httpClient.SendAsync(request);
             if (!response.IsSuccessStatusCode)

@@ -47,12 +47,12 @@ namespace TokenVaultMultiService.Pages
             return this.RedirectToPage("Index");
         }
 
-        private async Task SaveTokenVaultToken(string tokenVaultUrl, string serviceId, string tokenId, string code, string tokenVaultApiKey)
+        private async Task SaveTokenVaultToken(string tokenVaultUrl, string serviceId, string tokenId, string code, string tokenVaultApiToken)
         {
             var uriBuilder = new UriBuilder(tokenVaultUrl);
             uriBuilder.Path = $"/services/{serviceId}/tokens/{tokenId}/save";
             var request = new HttpRequestMessage(HttpMethod.Post, uriBuilder.Uri);
-            request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", tokenVaultApiKey);
+            request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", tokenVaultApiToken);
             request.Content = new StringContent(new JObject
             {
                 {
