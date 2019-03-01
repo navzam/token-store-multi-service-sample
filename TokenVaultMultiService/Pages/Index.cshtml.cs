@@ -35,7 +35,7 @@ namespace TokenVaultMultiService.Pages
             this._configuration = configuration;
         }
 
-        public async Task OnGet()
+        public async Task OnGetAsync()
         {
             // Check if user is authenticated
             if (this.User.Identity.IsAuthenticated)
@@ -53,7 +53,7 @@ namespace TokenVaultMultiService.Pages
                 var tokenVaultUrl = this._configuration["TokenVaultUrl"];
 
                 // Get Token Vault token resource for Dropbox for this user (and create it if it doesn't exist)
-                var tokenVaultDropboxToken = await EnsureTokenVaultTokenResource(tokenVaultUrl, "dropbox", objectId, tokenVaultApiToken);
+                var tokenVaultDropboxToken = await EnsureTokenVaultTokenResourceAsync(tokenVaultUrl, "dropbox", objectId, tokenVaultApiToken);
 
                 // Get Dropbox status from token resource and set in view data
                 var isDropboxConnected = tokenVaultDropboxToken.IsStatusOk();
@@ -62,7 +62,7 @@ namespace TokenVaultMultiService.Pages
                 // If connected, get data from Dropbox and set in view data
                 if (isDropboxConnected)
                 {
-                    var dropboxFiles = await GetDropboxDocuments(tokenVaultDropboxToken.value.accessToken);
+                    var dropboxFiles = await GetDropboxDocumentsAsync(tokenVaultDropboxToken.value.accessToken);
                     this.ViewData["dropboxData"] = String.Join(String.Empty, dropboxFiles.ToArray());
                 }
                 // Otherwise, set Dropbox login URI in view data
@@ -74,7 +74,7 @@ namespace TokenVaultMultiService.Pages
 
 
                 // Get Token Vault token resource for Graph for this user (and create it if it doesn't exist)
-                var tokenVaultGraphToken = await EnsureTokenVaultTokenResource(tokenVaultUrl, "graph", objectId, tokenVaultApiToken);
+                var tokenVaultGraphToken = await EnsureTokenVaultTokenResourceAsync(tokenVaultUrl, "graph", objectId, tokenVaultApiToken);
 
                 // Get Graph status from token resource and set in view data
                 var isGraphConnected = tokenVaultGraphToken.IsStatusOk();
@@ -83,7 +83,7 @@ namespace TokenVaultMultiService.Pages
                 // If connected, get data from Graph and set in view data
                 if (isGraphConnected)
                 {
-                    var graphFiles = await GetGraphDocuments(tokenVaultGraphToken.value.accessToken);
+                    var graphFiles = await GetGraphDocumentsAsync(tokenVaultGraphToken.value.accessToken);
                     this.ViewData["graphData"] = String.Join(System.Environment.NewLine, graphFiles.ToArray());
                 }
                 // Otherwise, set Graph login URI in view data
@@ -107,18 +107,18 @@ namespace TokenVaultMultiService.Pages
 
         #region Token Vault API methods
 
-        private async Task<Models.TokenVaultToken> EnsureTokenVaultTokenResource(string tokenVaultUrl, string serviceId, string tokenId, string tokenVaultApiToken)
+        private async Task<Models.TokenVaultToken> EnsureTokenVaultTokenResourceAsync(string tokenVaultUrl, string serviceId, string tokenId, string tokenVaultApiToken)
         {
-            var retrievedToken = await GetTokenResourceFromVault(tokenVaultUrl, serviceId, tokenId, tokenVaultApiToken);
+            var retrievedToken = await GetTokenVaultTokenResourceAsync(tokenVaultUrl, serviceId, tokenId, tokenVaultApiToken);
             if (retrievedToken != null)
             {
                 return retrievedToken;
             }
 
-            return await CreateTokenResourceInVault(tokenVaultUrl, serviceId, tokenId, tokenVaultApiToken);
+            return await CreateTokenVaultTokenResourceAsync(tokenVaultUrl, serviceId, tokenId, tokenVaultApiToken);
         }
 
-        private async Task<Models.TokenVaultToken> CreateTokenResourceInVault(string tokenVaultUrl, string serviceId, string tokenId, string tokenVaultApiToken)
+        private async Task<Models.TokenVaultToken> CreateTokenVaultTokenResourceAsync(string tokenVaultUrl, string serviceId, string tokenId, string tokenVaultApiToken)
         {
             var uriBuilder = new UriBuilder(tokenVaultUrl);
             uriBuilder.Path = $"/services/{serviceId}/tokens/{tokenId}";
@@ -140,7 +140,7 @@ namespace TokenVaultMultiService.Pages
             return tokenVaultToken;
         }
 
-        private async Task<Models.TokenVaultToken> GetTokenResourceFromVault(string tokenVaultUrl, string serviceId, string tokenId, string tokenVaultApiToken)
+        private async Task<Models.TokenVaultToken> GetTokenVaultTokenResourceAsync(string tokenVaultUrl, string serviceId, string tokenId, string tokenVaultApiToken)
         {
             var uriBuilder = new UriBuilder(tokenVaultUrl);
             uriBuilder.Path = $"/services/{serviceId}/tokens/{tokenId}";
@@ -163,7 +163,7 @@ namespace TokenVaultMultiService.Pages
 
         #region Service APIs
 
-        private async Task<IEnumerable<string>> GetDropboxDocuments(string token)
+        private async Task<IEnumerable<string>> GetDropboxDocumentsAsync(string token)
         {
             // Ensure token isn't empty
             if (string.IsNullOrEmpty(token))
@@ -180,7 +180,7 @@ namespace TokenVaultMultiService.Pages
             }
         }
 
-        private async Task<IEnumerable<string>> GetGraphDocuments(string token)
+        private async Task<IEnumerable<string>> GetGraphDocumentsAsync(string token)
         {
             // Ensure token isn't empty
             if (string.IsNullOrEmpty(token))

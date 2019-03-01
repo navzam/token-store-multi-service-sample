@@ -42,12 +42,12 @@ namespace TokenVaultMultiService.Pages
             string serviceId = this.HttpContext.Request.Query["serviceId"];
             string code = this.HttpContext.Request.Query["code"];
             string tokenVaultUrl = this._configuration["TokenVaultUrl"];
-            await SaveTokenVaultToken(tokenVaultUrl, serviceId, tokenId, code, tokenVaultApiToken);
+            await SaveTokenVaultTokenAsync(tokenVaultUrl, serviceId, tokenId, code, tokenVaultApiToken);
 
             return this.RedirectToPage("Index");
         }
 
-        private async Task SaveTokenVaultToken(string tokenVaultUrl, string serviceId, string tokenId, string code, string tokenVaultApiToken)
+        private async Task SaveTokenVaultTokenAsync(string tokenVaultUrl, string serviceId, string tokenId, string code, string tokenVaultApiToken)
         {
             var uriBuilder = new UriBuilder(tokenVaultUrl);
             uriBuilder.Path = $"/services/{serviceId}/tokens/{tokenId}/save";
