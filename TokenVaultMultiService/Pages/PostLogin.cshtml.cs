@@ -38,13 +38,21 @@ namespace TokenVaultMultiService.Pages
             string tokenVaultApiToken = await azureServiceTokenProvider.GetAccessTokenAsync("https://tokenvault.azure.net");
 
             // Call Token Vault's /save to "save" the token
+            // TODO: calling /save on the token gives the access token back; can we can take advantage of that to save a call to Token Vault in Index?
             string serviceId = this.HttpContext.Request.Query["serviceId"];
             string code = this.HttpContext.Request.Query["code"];
-            var tokenVaultUrl = this._configuration["TokenVaultUrl"];
+            string tokenVaultUrl = this._configuration["TokenVaultUrl"];
+            await SaveTokenVaultToken(tokenVaultUrl, serviceId, tokenId, code, tokenVaultApiToken);
+
+            return this.RedirectToPage("Index");
+        }
+
+        private async Task SaveTokenVaultToken(string tokenVaultUrl, string serviceId, string tokenId, string code, string tokenVaultApiKey)
+        {
             var uriBuilder = new UriBuilder(tokenVaultUrl);
             uriBuilder.Path = $"/services/{serviceId}/tokens/{tokenId}/save";
             var request = new HttpRequestMessage(HttpMethod.Post, uriBuilder.Uri);
-            request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", tokenVaultApiToken);
+            request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", tokenVaultApiKey);
             request.Content = new StringContent(new JObject
             {
                 {
@@ -52,15 +60,12 @@ namespace TokenVaultMultiService.Pages
                 }
             }.ToString(), Encoding.UTF8, "application/json");
 
-            // TODO: calling /save on the token gives the access token back; can we can take advantage of that to save a call to Token Vault in Index?
             var response = await _httpClient.SendAsync(request);
             if (!response.IsSuccessStatusCode)
             {
                 var content = await response.Content.ReadAsStringAsync();
                 throw new InvalidOperationException($"Failed to commit token: {content}");
             }
-
-            return this.RedirectToPage("Index");
         }
     }
 }
