@@ -68,7 +68,8 @@ namespace TokenVaultMultiService.Pages
                 // Otherwise, set Dropbox login URI in view data
                 else
                 {
-                    this.ViewData["dropboxLoginUrl"] = $"{tokenVaultDropboxToken.loginUri}?PostLoginRedirectUrl=https%3A%2F%2Flocalhost%3A44304%2Fpostlogin%3FserviceId=dropbox%26tokenId={objectId}";
+                    var redirectUrl = GetPostLoginRedirectUrl("dropbox", objectId);
+                    this.ViewData["dropboxLoginUrl"] = $"{tokenVaultDropboxToken.loginUri}?PostLoginRedirectUrl={Uri.EscapeDataString(redirectUrl)}";
                 }
 
 
@@ -89,7 +90,8 @@ namespace TokenVaultMultiService.Pages
                 // Otherwise, set Graph login URI in view data
                 else
                 {
-                    this.ViewData["graphLoginUrl"] = $"{tokenVaultGraphToken.loginUri}?PostLoginRedirectUrl=https%3A%2F%2Flocalhost%3A44304%2Fpostlogin%3FserviceId=graph%26tokenId={objectId}";
+                    var redirectUrl = GetPostLoginRedirectUrl("graph", objectId);
+                    this.ViewData["graphLoginUrl"] = $"{tokenVaultGraphToken.loginUri}?PostLoginRedirectUrl={Uri.EscapeDataString(redirectUrl)}";
                 }
 
 
@@ -197,6 +199,18 @@ namespace TokenVaultMultiService.Pages
             var driveItems = await graphClient.Me.Drive.Root.Children.Request().GetAsync();
             var driveItemNames = driveItems.Select(driveItem => driveItem.Name);
             return driveItemNames;
+        }
+
+        #endregion
+
+        #region Helper methods
+
+        // Constructs the post-login redirect URL that we append to Token Vault login URLs
+        private string GetPostLoginRedirectUrl(string serviceId, string tokenId)
+        {
+            var uriBuilder = new UriBuilder("https", this.Request.Host.Host, this.Request.Host.Port.GetValueOrDefault(-1), "postlogin");
+            uriBuilder.Query = $"serviceId={serviceId}&tokenId={tokenId}";
+            return uriBuilder.Uri.ToString();
         }
 
         #endregion
