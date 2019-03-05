@@ -1,0 +1,260 @@
+{
+    "$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "tokenVaultName": {
+            "type": "string",
+            "metadata": {
+                "description": "Name of the Token Vault resource to be created"
+            }
+        },
+        "tokenVaultLocation": {
+            "type": "string",
+            "defaultValue": "West Central US",
+            "allowedValues": [
+                "West Central US"
+            ],
+            "metadata": {
+                "description": "Azure location where the Token Vault resource will be deployed"
+            }
+        },
+        "webAppName": {
+            "type": "string",
+            "maxLength": 15,
+            "metadata": {
+                "description": "Name of the Web App resource to be created. This will also be in the URL of the website."
+            }
+        },
+        "webAppPlanName": {
+            "type": "string",
+            "metadata": {
+                "description": "Name of the Web App Plan resource to be created"
+            }
+        },
+        "webAppSkuName": {
+            "type": "string",
+            "defaultValue": "F1",
+            "allowedValues": [
+                "F1",
+                "D1",
+                "B1",
+                "B2",
+                "B3",
+                "S1",
+                "S2",
+                "S3",
+                "P1",
+                "P2",
+                "P3",
+                "P4"
+            ],
+            "metadata": {
+                "description": "Web app plan's pricing tier and instance size. Check details at https://azure.microsoft.com/en-us/pricing/details/app-service/"
+            }
+        },
+        "webAppLocation": {
+            "type": "string",
+            "defaultValue": "West US 2",
+            "allowedValues": [
+                "West US 2",
+                "West US",
+                "East US",
+                "East US 2" 
+            ],
+            "metadata": {
+                "description": "Azure location where the Web App and Web App Plan resources will be deployed"
+            }
+        },
+        "webAppGitHubUrl": {
+            "type": "string",
+            "defaultValue": "https://github.com/navzam/token-vault-multi-service-sample"
+        },
+        "webAppGitHubBranch": {
+            "type": "string",
+            "defaultValue": "master"
+        },
+        "aadClientId": {
+            "type": "string",
+            "metadata": {
+                "description": "App ID for the reigstered AAD application"
+            }
+        },
+        "aadClientSecret": {
+            "type": "securestring",
+            "metadata": {
+                "description": "App secret for the registered AAD application"
+            }
+        },
+        "dropboxAppId": {
+            "type": "string",
+            "metadata": {
+                "description": "App ID for the reigstered Dropbox application"
+            }
+        },
+        "dropboxAppSecret": {
+            "type": "securestring",
+            "metadata": {
+                "description": "App secret for the registered Dropbox application"
+            }
+        }
+    },
+    "variables": {
+        "webAppResourceId": "[resourceId('Microsoft.Web/sites/', parameters('webAppName'))]",
+        "tokenVaultResourceId": "[resourceId('Microsoft.TokenVault/vaults/', parameters('tokenVaultName'))]"
+    },
+    "resources": [
+        {
+            "type": "Microsoft.TokenVault/vaults",
+            "name": "[parameters('tokenVaultName')]",
+            "apiVersion": "2018-08-01-preview",
+            "location": "[parameters('tokenVaultLocation')]",
+            "properties": {
+                "authorizedPostRedirectUrls": [
+                    "[concat('https://', parameters('webAppName'), '.azurewebsites.net/')]"
+                ]
+            },
+            "dependsOn": [],
+            "resources": [
+                {
+                    "type": "accessPolicies",
+                    "name": "webAppPolicy",
+                    "apiVersion": "2018-08-01-preview",
+                    "properties": {
+                        "principal": {
+                            "tenantId": "[reference(variables('webAppResourceId'), '2018-02-01', 'Full').identity.tenantId]",
+                            "objectId": "[reference(variables('webAppResourceId'), '2018-02-01', 'Full').identity.principalId]"
+                        },
+                        "permissions": [
+                            "Get",
+                            "List",
+                            "CreateOrUpdate",
+                            "Delete"
+                        ]
+                    },
+                    "dependsOn": [
+                        "[variables('tokenVaultResourceId')]"
+                    ]
+                },
+                {
+                    "type": "services",
+                    "name": "dropbox",
+                    "apiVersion": "2018-08-01-preview",
+                    "properties": {
+                        "displayName": "Dropbox Service",
+                        "tokenParameters": {},
+                        "authentication": {
+                            "managedIdentityProvider": {
+                                "name": "dropbox"
+                            },
+                            "parameters": {
+                                "clientid": "[parameters('dropboxAppId')]",
+                                "clientsecret": "[parameters('dropboxAppSecret')]"
+                            }
+                        }
+                    },
+                    "dependsOn": [
+                        "[variables('tokenVaultResourceId')]"
+                    ],
+                    "resources": []
+                },
+                {
+                    "type": "services",
+                    "name": "graph",
+                    "apiVersion": "2018-08-01-preview",
+                    "properties": {
+                        "displayName": "Graph Service",
+                        "tokenParameters": {
+                            "scopes": {
+                                "parameterType": "string",
+                                "defaultValue": "Files.Read"
+                            }
+                        },
+                        "authentication": {
+                            "managedIdentityProvider": {
+                                "name": "outlook"
+                            },
+                            "parameters": {
+                                "clientid": "[parameters('aadClientID')]",
+                                "clientsecret": "[parameters('aadClientSecret')]",
+                                "scopes": "Files.Read"
+                            }
+                        }
+                    },
+                    "dependsOn": [
+                        "[variables('tokenVaultResourceId')]"
+                    ],
+                    "resources": []
+                }
+            ]
+        },
+        {
+            "apiVersion": "2016-03-01",
+            "name": "[parameters('webAppPlanName')]",
+            "type": "Microsoft.Web/serverfarms",
+            "location": "[parameters('webAppLocation')]",
+            "sku": {
+                "name": "[parameters('webAppSkuName')]",
+                "capacity": 1
+            }
+        },
+        {
+            "apiVersion": "2016-03-01",
+            "name": "[parameters('webAppName')]",
+            "type": "Microsoft.Web/sites",
+            "location": "[parameters('webAppLocation')]",
+            "identity": {
+                "type": "SystemAssigned"
+            },
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/serverfarms', parameters('webAppPlanName'))]"
+            ],
+            "properties": {
+                "serverFarmId": "[resourceId('Microsoft.Web/serverfarms', parameters('webAppPlanName'))]"
+            },
+            "resources": [
+                {
+                    "apiVersion": "2016-03-01",
+                    "name": "appsettings",
+                    "type": "config",
+                    "location": "[parameters('webAppLocation')]",
+                    "properties": {
+                        "TokenVaultUrl": "[reference(variables('tokenVaultResourceId')).vaultUrl]",
+                        "AzureAd:TenantId": "common",
+                        "AzureAd:Instance": "https://login.microsoftonline.com/",
+                        "AzureAd:Domain": "microsoft.com",
+                        "AzureAd:ClientId": "[parameters('aadClientID')]",
+                        "AzureAd:ClientSecret": "[parameters('aadClientSecret')]",
+                        "AzureAd:CallbackPath": "/signin-oidc"
+                    },
+                    "dependsOn": [
+                        "[variables('webAppResourceId')]",
+                        "[variables('tokenVaultResourceId')]"
+                    ]
+                },
+                {
+                    "apiVersion": "2018-02-01",
+                    "name": "web",
+                    "type": "sourcecontrols",
+                    "dependsOn": [
+                        "[variables('webAppResourceId')]",
+                        "[resourceId('Microsoft.Web/Sites/config', parameters('webAppName'), 'appsettings')]"
+                    ],
+                    "properties": {
+                        "RepoUrl": "[parameters('webAppGitHubUrl')]",
+                        "branch": "[parameters('webAppGitHubBranch')]",
+                        "IsManualIntegration": true
+                    }
+                }
+            ]
+        }
+    ],
+    "outputs": {
+        "TokenVaultRedirectUri": {
+            "type": "string",
+            "value": "[reference(variables('tokenVaultResourceId'), '2018-08-01-preview').redirectUrl]",
+            "metadata": {
+                "description": "This URL must be whitelisted as a valid redirect URL in the services' app registrations"
+            }
+        }
+    }
+}
