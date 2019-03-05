@@ -40,7 +40,6 @@ namespace TokenVaultMultiService.Pages
             // Check if user is authenticated
             if (this.User.Identity.IsAuthenticated)
             {
-                System.Console.WriteLine("user authenticated");
                 this.ViewData["loggedIn"] = true;
                 this.ViewData["userName"] = this.User.FindFirst("name").Value;
                 // TODO: can't use nameidentifier b/c Token Vault doesn't support underscores in names, and nameid can have underscores
@@ -102,7 +101,6 @@ namespace TokenVaultMultiService.Pages
             }
             else
             {
-                System.Console.WriteLine("user not authenticated");
                 this.ViewData["loggedIn"] = false;
             }
         }
