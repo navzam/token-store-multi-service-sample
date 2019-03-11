@@ -36,6 +36,7 @@ This repository includes an ARM template that describes the necessary resources.
 - Token Vault: Stores and manages OAuth access tokens
 
 The template includes some paramters that you will have to fill in:
+
 Parameter          | Description
 ------------------ | ------------------------------------------------------------------
 `tokenVaultName`   | Name of the Token Vault resource. Used in the Token Vault's URL
