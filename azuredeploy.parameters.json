@@ -17,10 +17,16 @@
         "webAppName": {
             "value": ""
         },
-        "aadClientId": {
+        "aadAuthNClientId": {
             "value": ""
         },
-        "aadClientSecret": {
+        "aadAuthNClientSecret": {
+            "value": ""
+        },
+        "aadGraphClientId": {
+            "value": ""
+        },
+        "aadGraphClientSecret": {
             "value": ""
         }
     }

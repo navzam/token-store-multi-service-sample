@@ -73,16 +73,28 @@
             "type": "string",
             "defaultValue": "master"
         },
-        "aadClientId": {
+        "aadAuthNClientId": {
             "type": "string",
             "metadata": {
-                "description": "App ID for the reigstered AAD application"
+                "description": "App ID for the reigstered AAD application that is used for authentication to the app"
             }
         },
-        "aadClientSecret": {
+        "aadAuthNClientSecret": {
             "type": "securestring",
             "metadata": {
-                "description": "App secret for the registered AAD application"
+                "description": "App secret for the registered AAD application that is used for authentication to the app"
+            }
+        },
+        "aadGraphClientId": {
+            "type": "string",
+            "metadata": {
+                "description": "App ID for the reigstered AAD application that is used to authorize against Graph"
+            }
+        },
+        "aadGraphClientSecret": {
+            "type": "securestring",
+            "metadata": {
+                "description": "App secret for the registered AAD application that is used to authorize against Graph"
             }
         },
         "dropboxAppId": {
@@ -163,22 +175,23 @@
                     "apiVersion": "2018-08-01-preview",
                     "properties": {
                         "displayName": "Graph Service",
-                        "tokenParameters": {
-                            "scopes": {
-                                "parameterType": "string",
-                                "defaultValue": "Files.Read"
-                            }
-                        },
                         "authentication": {
                             "managedIdentityProvider": {
-                                "name": "outlook"
+                                "name": "oauth2generic"
                             },
                             "parameters": {
-                                "clientid": "[parameters('aadClientID')]",
-                                "clientsecret": "[parameters('aadClientSecret')]",
-                                "scopes": "Files.Read"
+                                "ClientId": "[parameters('aadGraphClientId')]",
+                                "ClientSecret": "[parameters('aadGraphClientSecret')]",
+                                "AuthorizationUrlTemplate": "https://login.microsoftonline.com/common/oauth2/v2.0/authorize",
+                                "AuthorizationUrlQueryStringTemplate": "?client_id={ClientId}&response_type=code&redirect_uri={RedirectUrl}&response_mode=query&scope={Scopes}&state={State}",
+                                "TokenUrlTemplate": "https://login.microsoftonline.com/common/oauth2/v2.0/token",
+                                "TokenBodyTemplate": "client_id={ClientId}&scope={Scopes}&code={Code}&redirect_uri={RedirectUrl}&grant_type=authorization_code&client_secret={ClientSecret}",
+                                "RefreshUrlTemplate": "https://login.microsoftonline.com/common/oauth2/v2.0/token",
+                                "RefreshBodyTemplate": "client_id={ClientId}&scope={Scopes}&refresh_token={RefreshToken}&redirect_uri={RedirectUrl}&grant_type=refresh_token&client_secret={ClientSecret}",
+                                "Scopes": "Files.Read"
                             }
-                        }
+                        },
+                        "tokenParameters": {}
                     },
                     "dependsOn": [
                         "[variables('tokenVaultResourceId')]"
@@ -222,8 +235,8 @@
                         "AzureAd:TenantId": "common",
                         "AzureAd:Instance": "https://login.microsoftonline.com/",
                         "AzureAd:Domain": "microsoft.com",
-                        "AzureAd:ClientId": "[parameters('aadClientID')]",
-                        "AzureAd:ClientSecret": "[parameters('aadClientSecret')]",
+                        "AzureAd:ClientId": "[parameters('aadAuthNClientId')]",
+                        "AzureAd:ClientSecret": "[parameters('aadAuthNClientSecret')]",
                         "AzureAd:CallbackPath": "/signin-oidc"
                     },
                     "dependsOn": [
