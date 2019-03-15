@@ -38,17 +38,21 @@ namespace TokenVaultMultiService.Pages
             string tokenVaultApiToken = await azureServiceTokenProvider.GetAccessTokenAsync("https://tokenvault.azure.net");
 
             // Call Token Vault's /save to "save" the token
-            // TODO: calling /save on the token gives the access token back; can we can take advantage of that to save a call to Token Vault in Index?
-            string serviceId = this.HttpContext.Request.Query["serviceId"];
+            // First ensure we got a code back; otherwise auth flow didn't complete successfully
             string code = this.HttpContext.Request.Query["code"];
-            string tokenVaultUrl = this._configuration["TokenVaultUrl"];
-            await SaveTokenVaultTokenAsync(tokenVaultUrl, serviceId, tokenId, code, tokenVaultApiToken);
+            if (!String.IsNullOrWhiteSpace(code))
+            {
+                string tokenVaultUrl = this._configuration["TokenVaultUrl"];
+                string serviceId = this.HttpContext.Request.Query["serviceId"];
+                await SaveTokenVaultTokenAsync(tokenVaultUrl, serviceId, tokenId, code, tokenVaultApiToken);
+            }
 
             return this.RedirectToPage("Index");
         }
 
         private async Task SaveTokenVaultTokenAsync(string tokenVaultUrl, string serviceId, string tokenId, string code, string tokenVaultApiToken)
         {
+            // TODO: calling /save on the token gives the access token back; can we can take advantage of that to save a call to Token Vault in Index?
             var uriBuilder = new UriBuilder(tokenVaultUrl);
             uriBuilder.Path = $"/services/{serviceId}/tokens/{tokenId}/save";
             var request = new HttpRequestMessage(HttpMethod.Post, uriBuilder.Uri);
