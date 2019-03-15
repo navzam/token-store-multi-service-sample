@@ -44,10 +44,10 @@ The template includes some paramters that you will have to fill in:
 Parameter               | Description
 ----------------------- | ------------------------------------------------------------------
 `tokenVaultName`        | Name of the Token Vault resource. Used in the Token Vault's URL
-`dropboxAppId`          | App key assigned when you registered the Dropbox app
-`dropboxAppSecret`      | App secret assigned when you registered the Dropbox app
 `webAppPlanName`        | Name for the App Service Plan resource
 `webAppName`            | Name for the App Service resource. Used in the web app's URL
+`dropboxAppId`          | App key assigned when you registered the Dropbox app
+`dropboxAppSecret`      | App secret assigned when you registered the Dropbox app
 `aadAuthNClientId`      | Client ID assigned when you registered the first AAD app
 `aadAuthNClientSecret`  | Client secret created when you registered the first AAD app
 `aadGraphClientId`      | Client ID assigned when you registered the second AAD app

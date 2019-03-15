@@ -5,17 +5,17 @@
         "tokenVaultName": {
             "value": ""
         },
-        "dropboxAppId": {
-            "value": ""
-        },
-        "dropboxAppSecret": {
-          "value": ""
-        },
         "webAppPlanName": {
             "value": ""
         },
         "webAppName": {
             "value": ""
+        },
+        "dropboxAppId": {
+            "value": ""
+        },
+        "dropboxAppSecret": {
+          "value": ""
         },
         "aadAuthNClientId": {
             "value": ""
