@@ -25,82 +25,92 @@ using System.Security.Claims;
 
 namespace TokenVaultMultiService.Pages
 {
+    public class FileProviderViewData
+    {
+        public bool IsConnected { get; set; } = false;
+        public IEnumerable<string> Files { get; set; } = Enumerable.Empty<string>();
+        public string LoginUrl { get; set; }
+    }
+
     public class IndexModel : PageModel
     {
         private readonly IConfiguration _configuration;
         private static readonly HttpClient _httpClient = new HttpClient();
+        
+        public FileProviderViewData DropboxData { get; set; }
+        public FileProviderViewData GraphData { get; set; }
+        public bool LoggedIn { get; set; }
+        public string UserName { get; set; }
 
         public IndexModel(IConfiguration configuration)
         {
             this._configuration = configuration;
+            this.DropboxData = new FileProviderViewData();
+            this.GraphData = new FileProviderViewData();
         }
 
         public async Task OnGetAsync()
         {
-            // Check if user is authenticated
-            if (this.User.Identity.IsAuthenticated)
+            // Ensure that user is authenticated
+            this.LoggedIn = this.User.Identity.IsAuthenticated;
+            if (!this.LoggedIn)
             {
-                this.ViewData["loggedIn"] = true;
-                this.ViewData["userName"] = this.User.FindFirst("name").Value;
-                // TODO: can't use nameidentifier b/c Token Vault doesn't support underscores in names, and nameid can have underscores
-                //var nameId = this.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-                var objectId = this.User.FindFirst("http://schemas.microsoft.com/identity/claims/objectidentifier").Value;
-
-                // Get an API token to access Token Vault
-                var azureServiceTokenProvider = new AzureServiceTokenProvider();
-                var tokenVaultApiToken = await azureServiceTokenProvider.GetAccessTokenAsync("https://tokenvault.azure.net");
-                var tokenVaultUrl = this._configuration["TokenVaultUrl"];
-
-                // Get Token Vault token resource for Dropbox for this user (and create it if it doesn't exist)
-                var tokenVaultDropboxToken = await EnsureTokenVaultTokenResourceAsync(tokenVaultUrl, "dropbox", objectId, tokenVaultApiToken);
-
-                // Get Dropbox status from token resource and set in view data
-                var isDropboxConnected = tokenVaultDropboxToken.IsStatusOk();
-                this.ViewData["isDropboxConnected"] = isDropboxConnected;
-
-                // If connected, get data from Dropbox and set in view data
-                if (isDropboxConnected)
-                {
-                    this.ViewData["dropboxFileList"] = await GetDropboxDocumentsAsync(tokenVaultDropboxToken.value.accessToken);
-                }
-                // Otherwise, set Dropbox login URI in view data
-                else
-                {
-                    var redirectUrl = GetPostLoginRedirectUrl("dropbox", objectId);
-                    this.ViewData["dropboxLoginUrl"] = $"{tokenVaultDropboxToken.loginUri}?PostLoginRedirectUrl={Uri.EscapeDataString(redirectUrl)}";
-                }
-
-
-
-                // Get Token Vault token resource for Graph for this user (and create it if it doesn't exist)
-                var tokenVaultGraphToken = await EnsureTokenVaultTokenResourceAsync(tokenVaultUrl, "graph", objectId, tokenVaultApiToken);
-
-                // Get Graph status from token resource and set in view data
-                var isGraphConnected = tokenVaultGraphToken.IsStatusOk();
-                this.ViewData["isGraphConnected"] = isGraphConnected;
-
-                // If connected, get data from Graph and set in view data
-                if (isGraphConnected)
-                {
-                    this.ViewData["graphFileList"] = await GetGraphDocumentsAsync(tokenVaultGraphToken.value.accessToken);
-                }
-                // Otherwise, set Graph login URI in view data
-                else
-                {
-                    var redirectUrl = GetPostLoginRedirectUrl("graph", objectId);
-                    this.ViewData["graphLoginUrl"] = $"{tokenVaultGraphToken.loginUri}?PostLoginRedirectUrl={Uri.EscapeDataString(redirectUrl)}";
-                }
-
-
-
-                // Associate token name with this session, so that PostLoginRedirect can verify where the login request originated
-                // TODO: session could expire... maybe move this to the login endpoint
-                this.HttpContext.Session.SetString("tvId", objectId);
+                return;
             }
+
+            this.UserName = this.User.FindFirst("name").Value;
+            // TODO: can't use nameidentifier b/c Token Vault doesn't support underscores in names, and nameid can have underscores
+            //var nameId = this.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            var objectId = this.User.FindFirst("http://schemas.microsoft.com/identity/claims/objectidentifier").Value;
+
+            // Get an API token to access Token Vault
+            var azureServiceTokenProvider = new AzureServiceTokenProvider();
+            var tokenVaultApiToken = await azureServiceTokenProvider.GetAccessTokenAsync("https://tokenvault.azure.net");
+            var tokenVaultUrl = this._configuration["TokenVaultUrl"];
+
+            // Get Token Vault token resource for Dropbox for this user (and create it if it doesn't exist)
+            var tokenVaultDropboxToken = await EnsureTokenVaultTokenResourceAsync(tokenVaultUrl, "dropbox", objectId, tokenVaultApiToken);
+
+            // Get Dropbox status from token resource and set in view data
+            this.DropboxData.IsConnected = tokenVaultDropboxToken.IsStatusOk();
+
+            // If connected, get data from Dropbox and set in view data
+            if (this.DropboxData.IsConnected)
+            {
+                this.DropboxData.Files = await GetDropboxDocumentsAsync(tokenVaultDropboxToken.value.accessToken);
+            }
+            // Otherwise, set Dropbox login URI in view data
             else
             {
-                this.ViewData["loggedIn"] = false;
+                var redirectUrl = GetPostLoginRedirectUrl("dropbox", objectId);
+                this.DropboxData.LoginUrl = $"{tokenVaultDropboxToken.loginUri}?PostLoginRedirectUrl={Uri.EscapeDataString(redirectUrl)}";
             }
+
+
+
+            // Get Token Vault token resource for Graph for this user (and create it if it doesn't exist)
+            var tokenVaultGraphToken = await EnsureTokenVaultTokenResourceAsync(tokenVaultUrl, "graph", objectId, tokenVaultApiToken);
+
+            // Get Graph status from token resource and set in view data
+            this.GraphData.IsConnected = tokenVaultGraphToken.IsStatusOk();
+
+            // If connected, get data from Graph and set in view data
+            if (this.GraphData.IsConnected)
+            {
+                this.GraphData.Files = await GetGraphDocumentsAsync(tokenVaultGraphToken.value.accessToken);
+            }
+            // Otherwise, set Graph login URI in view data
+            else
+            {
+                var redirectUrl = GetPostLoginRedirectUrl("graph", objectId);
+                this.GraphData.LoginUrl = $"{tokenVaultGraphToken.loginUri}?PostLoginRedirectUrl={Uri.EscapeDataString(redirectUrl)}";
+            }
+
+
+
+            // Associate token name with this session, so that PostLoginRedirect can verify where the login request originated
+            // TODO: session could expire... maybe move this to the login endpoint
+            this.HttpContext.Session.SetString("tvId", objectId);
         }
 
         #region Token Vault API methods

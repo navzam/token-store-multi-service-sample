@@ -2,31 +2,28 @@
 @model IndexModel
 @{
     ViewData["Title"] = "Home page";
-    var loggedIn = (bool)ViewData["loggedIn"];
-    var isDropboxConnected = loggedIn && (bool)ViewData["isDropboxConnected"];
-    var isGraphConnected = loggedIn && (bool)ViewData["isGraphConnected"];
 }
 
 <div class="text-center">
     <h1 class="display-4">Token Vault Multi Service Sample</h1>
-    @if (!loggedIn)
+    @if (!Model.LoggedIn)
     {
         <p>You need to <a asp-page="/Login">sign in with AAD</a> use this app.</p>
     }
     else
     {
-        <p>Thanks for signing in, @ViewData["userName"]. You can connect to external services below.</p>
+        <p>Thanks for signing in, @Model.UserName. You can connect to external services below.</p>
     }
 </div>
 
 <div class="text-left">
-    @if (loggedIn)
+    @if (Model.LoggedIn)
     {
-        @if (isDropboxConnected)
+        @if (Model.DropboxData.IsConnected)
         {
             <p>Dropbox status: Connected</p>
             <ul>
-                @foreach (string file in (@ViewData["dropboxFileList"] as IEnumerable<string>))
+                @foreach (string file in Model.DropboxData.Files)
                 {
                     <li>@file</li>
                 }
@@ -34,14 +31,14 @@
         }
         else
         {
-            <p>Dropbox status: Disconnected. <a href="@ViewData["dropboxLoginUrl"]">Sign in to Dropbox</a></p>
+            <p>Dropbox status: Disconnected. <a href="@Model.DropboxData.LoginUrl">Sign in to Dropbox</a></p>
         }
 
-        @if (isGraphConnected)
+        @if (Model.GraphData.IsConnected)
         {
             <p>Graph status: Connected</p>
             <ul>
-                @foreach (string file in (@ViewData["graphFileList"] as IEnumerable<string>))
+                @foreach (string file in Model.GraphData.Files)
                 {
                     <li>@file</li>
                 }
@@ -49,7 +46,7 @@
         }
         else
         {
-            <p>Graph status: Disconnected. <a href="@ViewData["graphLoginUrl"]">Sign in to Graph</a></p>
+            <p>Graph status: Disconnected. <a href="@Model.GraphData.LoginUrl">Sign in to Graph</a></p>
         }
     }
 </div>
