@@ -61,8 +61,7 @@ namespace TokenVaultMultiService.Pages
                 // If connected, get data from Dropbox and set in view data
                 if (isDropboxConnected)
                 {
-                    var dropboxFiles = await GetDropboxDocumentsAsync(tokenVaultDropboxToken.value.accessToken);
-                    this.ViewData["dropboxData"] = String.Join(String.Empty, dropboxFiles.ToArray());
+                    this.ViewData["dropboxFileList"] = await GetDropboxDocumentsAsync(tokenVaultDropboxToken.value.accessToken);
                 }
                 // Otherwise, set Dropbox login URI in view data
                 else
@@ -83,8 +82,7 @@ namespace TokenVaultMultiService.Pages
                 // If connected, get data from Graph and set in view data
                 if (isGraphConnected)
                 {
-                    var graphFiles = await GetGraphDocumentsAsync(tokenVaultGraphToken.value.accessToken);
-                    this.ViewData["graphData"] = String.Join(System.Environment.NewLine, graphFiles.ToArray());
+                    this.ViewData["graphFileList"] = await GetGraphDocumentsAsync(tokenVaultGraphToken.value.accessToken);
                 }
                 // Otherwise, set Graph login URI in view data
                 else

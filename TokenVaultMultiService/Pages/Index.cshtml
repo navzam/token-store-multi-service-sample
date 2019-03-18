@@ -25,23 +25,31 @@
         @if (isDropboxConnected)
         {
             <p>Dropbox status: Connected</p>
-            <p>Dropbox data: @ViewData["dropboxData"]</p>
+            <ul>
+                @foreach (string file in (@ViewData["dropboxFileList"] as IEnumerable<string>))
+                {
+                    <li>@file</li>
+                }
+            </ul>
         }
         else
         {
-            <p>Dropbox status: Disconnected</p>
-            <p><a href="@ViewData["dropboxLoginUrl"]">Sign in to Dropbox</a></p>
+            <p>Dropbox status: Disconnected. <a href="@ViewData["dropboxLoginUrl"]">Sign in to Dropbox</a></p>
         }
 
         @if (isGraphConnected)
         {
             <p>Graph status: Connected</p>
-            <p>Graph data: @ViewData["graphData"]</p>
+            <ul>
+                @foreach (string file in (@ViewData["graphFileList"] as IEnumerable<string>))
+                {
+                    <li>@file</li>
+                }
+            </ul>
         }
         else
         {
-            <p>Graph status: Disconnected</p>
-            <p><a href="@ViewData["graphLoginUrl"]">Sign in to Graph</a></p>
+            <p>Graph status: Disconnected. <a href="@ViewData["graphLoginUrl"]">Sign in to Graph</a></p>
         }
     }
 </div>
