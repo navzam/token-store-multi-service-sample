@@ -77,13 +77,13 @@ namespace TokenVaultMultiService.Pages
             // If connected, get data from Dropbox and set in view data
             if (this.DropboxData.IsConnected)
             {
-                this.DropboxData.Files = await GetDropboxDocumentsAsync(tokenVaultDropboxToken.value.accessToken);
+                this.DropboxData.Files = await GetDropboxDocumentsAsync(tokenVaultDropboxToken.Value.AccessToken);
             }
             // Otherwise, set Dropbox login URI in view data
             else
             {
                 var redirectUrl = GetPostLoginRedirectUrl("dropbox", objectId);
-                this.DropboxData.LoginUrl = $"{tokenVaultDropboxToken.loginUri}?PostLoginRedirectUrl={Uri.EscapeDataString(redirectUrl)}";
+                this.DropboxData.LoginUrl = $"{tokenVaultDropboxToken.LoginUri}?PostLoginRedirectUrl={Uri.EscapeDataString(redirectUrl)}";
             }
 
 
@@ -97,13 +97,13 @@ namespace TokenVaultMultiService.Pages
             // If connected, get data from Graph and set in view data
             if (this.GraphData.IsConnected)
             {
-                this.GraphData.Files = await GetGraphDocumentsAsync(tokenVaultGraphToken.value.accessToken);
+                this.GraphData.Files = await GetGraphDocumentsAsync(tokenVaultGraphToken.Value.AccessToken);
             }
             // Otherwise, set Graph login URI in view data
             else
             {
                 var redirectUrl = GetPostLoginRedirectUrl("graph", objectId);
-                this.GraphData.LoginUrl = $"{tokenVaultGraphToken.loginUri}?PostLoginRedirectUrl={Uri.EscapeDataString(redirectUrl)}";
+                this.GraphData.LoginUrl = $"{tokenVaultGraphToken.LoginUri}?PostLoginRedirectUrl={Uri.EscapeDataString(redirectUrl)}";
             }
 
 
@@ -115,7 +115,7 @@ namespace TokenVaultMultiService.Pages
 
         #region Token Vault API methods
 
-        private async Task<Models.TokenVaultToken> GetOrCreateTokenVaultTokenResourceAsync(string tokenVaultUrl, string serviceId, string tokenId, string tokenVaultApiToken)
+        private async Task<TokenVault.Token> GetOrCreateTokenVaultTokenResourceAsync(string tokenVaultUrl, string serviceId, string tokenId, string tokenVaultApiToken)
         {
             var retrievedToken = await GetTokenVaultTokenResourceAsync(tokenVaultUrl, serviceId, tokenId, tokenVaultApiToken);
             if (retrievedToken != null)
@@ -126,7 +126,7 @@ namespace TokenVaultMultiService.Pages
             return await CreateTokenVaultTokenResourceAsync(tokenVaultUrl, serviceId, tokenId, tokenVaultApiToken);
         }
 
-        private async Task<Models.TokenVaultToken> CreateTokenVaultTokenResourceAsync(string tokenVaultUrl, string serviceId, string tokenId, string tokenVaultApiToken)
+        private async Task<TokenVault.Token> CreateTokenVaultTokenResourceAsync(string tokenVaultUrl, string serviceId, string tokenId, string tokenVaultApiToken)
         {
             var uriBuilder = new UriBuilder(tokenVaultUrl);
             uriBuilder.Path = $"/services/{serviceId}/tokens/{tokenId}";
@@ -143,12 +143,12 @@ namespace TokenVaultMultiService.Pages
             // TODO: need error handling on this request
             var response = await _httpClient.SendAsync(request);
             var responseStr = await response.Content.ReadAsStringAsync();
-            var tokenVaultToken = JsonConvert.DeserializeObject<Models.TokenVaultToken>(responseStr);
+            var tokenVaultToken = JsonConvert.DeserializeObject<TokenVault.Token>(responseStr);
 
             return tokenVaultToken;
         }
 
-        private async Task<Models.TokenVaultToken> GetTokenVaultTokenResourceAsync(string tokenVaultUrl, string serviceId, string tokenId, string tokenVaultApiToken)
+        private async Task<TokenVault.Token> GetTokenVaultTokenResourceAsync(string tokenVaultUrl, string serviceId, string tokenId, string tokenVaultApiToken)
         {
             var uriBuilder = new UriBuilder(tokenVaultUrl);
             uriBuilder.Path = $"/services/{serviceId}/tokens/{tokenId}";
@@ -162,7 +162,7 @@ namespace TokenVaultMultiService.Pages
             }
 
             var responseStr = await response.Content.ReadAsStringAsync();
-            var tokenVaultToken = JsonConvert.DeserializeObject<Models.TokenVaultToken>(responseStr);
+            var tokenVaultToken = JsonConvert.DeserializeObject<TokenVault.Token>(responseStr);
 
             return tokenVaultToken;
         }
