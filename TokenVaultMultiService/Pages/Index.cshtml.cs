@@ -67,9 +67,10 @@ namespace TokenVaultMultiService.Pages
             var azureServiceTokenProvider = new AzureServiceTokenProvider();
             var tokenVaultApiToken = await azureServiceTokenProvider.GetAccessTokenAsync("https://tokenvault.azure.net");
             var tokenVaultUrl = this._configuration["TokenVaultUrl"];
+            var tokenVaultClient = new TokenVault.TokenVaultClient(tokenVaultUrl, tokenVaultApiToken);
 
             // Get Token Vault token resource for Dropbox for this user (and create it if it doesn't exist)
-            var tokenVaultDropboxToken = await GetOrCreateTokenVaultTokenResourceAsync(tokenVaultUrl, "dropbox", objectId, tokenVaultApiToken);
+            var tokenVaultDropboxToken = await GetOrCreateTokenVaultTokenResourceAsync(tokenVaultClient, "dropbox", objectId);
 
             // Get Dropbox status from token resource and set in view data
             this.DropboxData.IsConnected = tokenVaultDropboxToken.IsStatusOk();
@@ -89,7 +90,7 @@ namespace TokenVaultMultiService.Pages
 
 
             // Get Token Vault token resource for Graph for this user (and create it if it doesn't exist)
-            var tokenVaultGraphToken = await GetOrCreateTokenVaultTokenResourceAsync(tokenVaultUrl, "graph", objectId, tokenVaultApiToken);
+            var tokenVaultGraphToken = await GetOrCreateTokenVaultTokenResourceAsync(tokenVaultClient, "graph", objectId);
 
             // Get Graph status from token resource and set in view data
             this.GraphData.IsConnected = tokenVaultGraphToken.IsStatusOk();
@@ -115,56 +116,15 @@ namespace TokenVaultMultiService.Pages
 
         #region Token Vault API methods
 
-        private async Task<TokenVault.Token> GetOrCreateTokenVaultTokenResourceAsync(string tokenVaultUrl, string serviceId, string tokenId, string tokenVaultApiToken)
+        private async Task<TokenVault.Token> GetOrCreateTokenVaultTokenResourceAsync(TokenVault.TokenVaultClient client, string serviceId, string tokenId)
         {
-            var retrievedToken = await GetTokenVaultTokenResourceAsync(tokenVaultUrl, serviceId, tokenId, tokenVaultApiToken);
+            var retrievedToken = await client.GetTokenResourceAsync(serviceId, tokenId);
             if (retrievedToken != null)
             {
                 return retrievedToken;
             }
 
-            return await CreateTokenVaultTokenResourceAsync(tokenVaultUrl, serviceId, tokenId, tokenVaultApiToken);
-        }
-
-        private async Task<TokenVault.Token> CreateTokenVaultTokenResourceAsync(string tokenVaultUrl, string serviceId, string tokenId, string tokenVaultApiToken)
-        {
-            var uriBuilder = new UriBuilder(tokenVaultUrl);
-            uriBuilder.Path = $"/services/{serviceId}/tokens/{tokenId}";
-            var request = new HttpRequestMessage(HttpMethod.Put, uriBuilder.Uri);
-            request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", tokenVaultApiToken);
-            // TODO: might want a strongly-typed object
-            var requestContent = JObject.FromObject(new
-            {
-                name = tokenId,
-                displayName = tokenId
-            });
-            request.Content = new StringContent(requestContent.ToString(), Encoding.UTF8, "application/json");
-
-            // TODO: need error handling on this request
-            var response = await _httpClient.SendAsync(request);
-            var responseStr = await response.Content.ReadAsStringAsync();
-            var tokenVaultToken = JsonConvert.DeserializeObject<TokenVault.Token>(responseStr);
-
-            return tokenVaultToken;
-        }
-
-        private async Task<TokenVault.Token> GetTokenVaultTokenResourceAsync(string tokenVaultUrl, string serviceId, string tokenId, string tokenVaultApiToken)
-        {
-            var uriBuilder = new UriBuilder(tokenVaultUrl);
-            uriBuilder.Path = $"/services/{serviceId}/tokens/{tokenId}";
-            var request = new HttpRequestMessage(HttpMethod.Get, uriBuilder.Uri);
-            request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", tokenVaultApiToken);
-
-            var response = await _httpClient.SendAsync(request);
-            if (!response.IsSuccessStatusCode)
-            {
-                return null;
-            }
-
-            var responseStr = await response.Content.ReadAsStringAsync();
-            var tokenVaultToken = JsonConvert.DeserializeObject<TokenVault.Token>(responseStr);
-
-            return tokenVaultToken;
+            return await client.CreateTokenResourceAsync(serviceId, tokenId);
         }
 
         #endregion

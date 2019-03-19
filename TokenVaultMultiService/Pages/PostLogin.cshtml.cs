@@ -44,32 +44,11 @@ namespace TokenVaultMultiService.Pages
             {
                 string tokenVaultUrl = this._configuration["TokenVaultUrl"];
                 string serviceId = this.HttpContext.Request.Query["serviceId"];
-                await SaveTokenVaultTokenAsync(tokenVaultUrl, serviceId, tokenId, code, tokenVaultApiToken);
+                var tokenVaultClient = new TokenVault.TokenVaultClient(tokenVaultUrl, tokenVaultApiToken);
+                await tokenVaultClient.SaveTokenAsync(serviceId, tokenId, code);
             }
 
             return this.RedirectToPage("Index");
-        }
-
-        private async Task SaveTokenVaultTokenAsync(string tokenVaultUrl, string serviceId, string tokenId, string code, string tokenVaultApiToken)
-        {
-            // TODO: calling /save on the token gives the access token back; can we can take advantage of that to save a call to Token Vault in Index?
-            var uriBuilder = new UriBuilder(tokenVaultUrl);
-            uriBuilder.Path = $"/services/{serviceId}/tokens/{tokenId}/save";
-            var request = new HttpRequestMessage(HttpMethod.Post, uriBuilder.Uri);
-            request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", tokenVaultApiToken);
-            request.Content = new StringContent(new JObject
-            {
-                {
-                    "code", code
-                }
-            }.ToString(), Encoding.UTF8, "application/json");
-
-            var response = await _httpClient.SendAsync(request);
-            if (!response.IsSuccessStatusCode)
-            {
-                var content = await response.Content.ReadAsStringAsync();
-                throw new InvalidOperationException($"Failed to commit token: {content}");
-            }
         }
     }
 }
