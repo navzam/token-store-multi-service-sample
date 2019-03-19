@@ -69,7 +69,7 @@ namespace TokenVaultMultiService.Pages
             var tokenVaultUrl = this._configuration["TokenVaultUrl"];
 
             // Get Token Vault token resource for Dropbox for this user (and create it if it doesn't exist)
-            var tokenVaultDropboxToken = await EnsureTokenVaultTokenResourceAsync(tokenVaultUrl, "dropbox", objectId, tokenVaultApiToken);
+            var tokenVaultDropboxToken = await GetOrCreateTokenVaultTokenResourceAsync(tokenVaultUrl, "dropbox", objectId, tokenVaultApiToken);
 
             // Get Dropbox status from token resource and set in view data
             this.DropboxData.IsConnected = tokenVaultDropboxToken.IsStatusOk();
@@ -89,7 +89,7 @@ namespace TokenVaultMultiService.Pages
 
 
             // Get Token Vault token resource for Graph for this user (and create it if it doesn't exist)
-            var tokenVaultGraphToken = await EnsureTokenVaultTokenResourceAsync(tokenVaultUrl, "graph", objectId, tokenVaultApiToken);
+            var tokenVaultGraphToken = await GetOrCreateTokenVaultTokenResourceAsync(tokenVaultUrl, "graph", objectId, tokenVaultApiToken);
 
             // Get Graph status from token resource and set in view data
             this.GraphData.IsConnected = tokenVaultGraphToken.IsStatusOk();
@@ -115,7 +115,7 @@ namespace TokenVaultMultiService.Pages
 
         #region Token Vault API methods
 
-        private async Task<Models.TokenVaultToken> EnsureTokenVaultTokenResourceAsync(string tokenVaultUrl, string serviceId, string tokenId, string tokenVaultApiToken)
+        private async Task<Models.TokenVaultToken> GetOrCreateTokenVaultTokenResourceAsync(string tokenVaultUrl, string serviceId, string tokenId, string tokenVaultApiToken)
         {
             var retrievedToken = await GetTokenVaultTokenResourceAsync(tokenVaultUrl, serviceId, tokenId, tokenVaultApiToken);
             if (retrievedToken != null)
