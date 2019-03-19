@@ -26,7 +26,7 @@ namespace TokenVaultMultiService.Pages
 
         public async Task<IActionResult> OnGetAsync()
         {
-            var expectedTokenId = this.HttpContext.Session.GetString("tvId");
+            string expectedTokenId = this.HttpContext.Session.GetString("tvId");
             string tokenId = this.HttpContext.Request.Query["tokenId"];
             if (tokenId != expectedTokenId)
             {
@@ -34,17 +34,18 @@ namespace TokenVaultMultiService.Pages
                 throw new InvalidOperationException("token ID does not match expected value, will not save");
             }
 
-            var azureServiceTokenProvider = new AzureServiceTokenProvider();
-            string tokenVaultApiToken = await azureServiceTokenProvider.GetAccessTokenAsync("https://tokenvault.azure.net");
-
-            // Call Token Vault's /save to "save" the token
-            // First ensure we got a code back; otherwise auth flow didn't complete successfully
+            // Ensure we got a code back; otherwise auth flow didn't complete successfully
             string code = this.HttpContext.Request.Query["code"];
             if (!String.IsNullOrWhiteSpace(code))
             {
+                // Set up Token Vault client
+                var azureServiceTokenProvider = new AzureServiceTokenProvider();
+                string tokenVaultApiToken = await azureServiceTokenProvider.GetAccessTokenAsync("https://tokenvault.azure.net");
                 string tokenVaultUrl = this._configuration["TokenVaultUrl"];
-                string serviceId = this.HttpContext.Request.Query["serviceId"];
                 var tokenVaultClient = new TokenVault.TokenVaultClient(tokenVaultUrl, tokenVaultApiToken);
+
+                // Call "save" on Token Vault to verify the auth flow and finalize the token
+                string serviceId = this.HttpContext.Request.Query["serviceId"];
                 await tokenVaultClient.SaveTokenAsync(serviceId, tokenId, code);
             }
 
