@@ -8,11 +8,6 @@
         public string LoginUri { get; set; }
         public TokenValue Value { get; set; }
         public TokenStatus Status { get; set; }
-
-        public bool IsStatusOk()
-        {
-            return this.Status.State == "Ok";
-        }
     }
 
     public class TokenValue

@@ -72,8 +72,8 @@ namespace TokenVaultMultiService.Pages
             // Get Token Vault token resource for Dropbox for this user (and create it if it doesn't exist)
             var tokenVaultDropboxToken = await GetOrCreateTokenVaultTokenResourceAsync(tokenVaultClient, "dropbox", objectId);
 
-            // Get Dropbox status from token resource and set in view data
-            this.DropboxData.IsConnected = tokenVaultDropboxToken.IsStatusOk();
+            // Check Dropbox token status and set in view data
+            this.DropboxData.IsConnected = tokenVaultDropboxToken.Status.State.ToLower() == "ok";
 
             // If connected, get data from Dropbox and set in view data
             if (this.DropboxData.IsConnected)
@@ -92,8 +92,8 @@ namespace TokenVaultMultiService.Pages
             // Get Token Vault token resource for Graph for this user (and create it if it doesn't exist)
             var tokenVaultGraphToken = await GetOrCreateTokenVaultTokenResourceAsync(tokenVaultClient, "graph", objectId);
 
-            // Get Graph status from token resource and set in view data
-            this.GraphData.IsConnected = tokenVaultGraphToken.IsStatusOk();
+            // Check Graph token status and set in view data
+            this.GraphData.IsConnected = tokenVaultGraphToken.Status.State.ToLower() == "ok";
 
             // If connected, get data from Graph and set in view data
             if (this.GraphData.IsConnected)
