@@ -29,7 +29,6 @@ namespace TokenVaultMultiService.TokenVault
             // TODO: might want a strongly-typed object
             var requestContent = JObject.FromObject(new
             {
-                name = tokenId,
                 displayName = tokenId
             });
             request.Content = new StringContent(requestContent.ToString(), Encoding.UTF8, "application/json");
