@@ -59,8 +59,6 @@ namespace TokenVaultMultiService.Pages
             }
 
             this.UserName = this.User.FindFirst("name").Value;
-            // TODO: can't use nameidentifier b/c Token Vault doesn't support underscores in names, and nameid can have underscores
-            //var nameId = this.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             var objectId = this.User.FindFirst("http://schemas.microsoft.com/identity/claims/objectidentifier").Value;
 
             // Get an API token to access Token Vault
@@ -110,7 +108,6 @@ namespace TokenVaultMultiService.Pages
 
 
             // Associate token name with this session, so that PostLoginRedirect can verify where the login request originated
-            // TODO: session could expire... maybe move this to the login endpoint
             this.HttpContext.Session.SetString("tvId", objectId);
         }
 

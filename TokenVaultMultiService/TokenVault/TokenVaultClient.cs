@@ -26,14 +26,12 @@ namespace TokenVaultMultiService.TokenVault
             var tokenUri = this.GetTokenUri(serviceId, tokenId);
             var request = new HttpRequestMessage(HttpMethod.Put, tokenUri);
             request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", this.apiToken);
-            // TODO: might want a strongly-typed object
             var requestContent = JObject.FromObject(new
             {
                 displayName = tokenId
             });
             request.Content = new StringContent(requestContent.ToString(), Encoding.UTF8, "application/json");
 
-            // TODO: need error handling on this request
             var response = await httpClient.SendAsync(request);
             var responseStr = await response.Content.ReadAsStringAsync();
             var tokenVaultToken = JsonConvert.DeserializeObject<Token>(responseStr);
