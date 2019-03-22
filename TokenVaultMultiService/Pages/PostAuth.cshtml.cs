@@ -14,12 +14,12 @@ using Newtonsoft.Json.Linq;
 
 namespace TokenVaultMultiService.Pages
 {
-    public class PostLoginModel : PageModel
+    public class PostAuthModel : PageModel
     {
         private readonly IConfiguration _configuration;
         private static HttpClient _httpClient = new HttpClient();
 
-        public PostLoginModel(IConfiguration configuration)
+        public PostAuthModel(IConfiguration configuration)
         {
             this._configuration = configuration;
         }

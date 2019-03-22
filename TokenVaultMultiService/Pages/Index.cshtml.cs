@@ -81,8 +81,8 @@ namespace TokenVaultMultiService.Pages
             // Otherwise, set Dropbox login URI in view data
             else
             {
-                var redirectUrl = GetPostLoginRedirectUrl("dropbox", objectId);
-                this.DropboxData.LoginUrl = $"{tokenVaultDropboxToken.LoginUri}?PostLoginRedirectUrl={Uri.EscapeDataString(redirectUrl)}";
+                var postAuthRedirectUrl = GetPostAuthRedirectUrl("dropbox", objectId);
+                this.DropboxData.LoginUrl = $"{tokenVaultDropboxToken.LoginUri}?PostLoginRedirectUrl={Uri.EscapeDataString(postAuthRedirectUrl)}";
             }
 
 
@@ -101,13 +101,13 @@ namespace TokenVaultMultiService.Pages
             // Otherwise, set Graph login URI in view data
             else
             {
-                var redirectUrl = GetPostLoginRedirectUrl("graph", objectId);
+                var redirectUrl = GetPostAuthRedirectUrl("graph", objectId);
                 this.GraphData.LoginUrl = $"{tokenVaultGraphToken.LoginUri}?PostLoginRedirectUrl={Uri.EscapeDataString(redirectUrl)}";
             }
 
 
 
-            // Associate token name with this session, so that PostLoginRedirect can verify where the login request originated
+            // Associate token name with this session, so that the post-auth handler can verify where the login flow originated
             this.HttpContext.Session.SetString("tvId", objectId);
         }
 
@@ -168,10 +168,10 @@ namespace TokenVaultMultiService.Pages
 
         #region Helper methods
 
-        // Constructs the post-login redirect URL that we append to Token Vault login URLs
-        private string GetPostLoginRedirectUrl(string serviceId, string tokenId)
+        // Constructs the post-auth redirect URL that we append to Token Vault login URLs
+        private string GetPostAuthRedirectUrl(string serviceId, string tokenId)
         {
-            var uriBuilder = new UriBuilder("https", this.Request.Host.Host, this.Request.Host.Port.GetValueOrDefault(-1), "postlogin");
+            var uriBuilder = new UriBuilder("https", this.Request.Host.Host, this.Request.Host.Port.GetValueOrDefault(-1), "postauth");
             uriBuilder.Query = $"serviceId={serviceId}&tokenId={tokenId}";
             return uriBuilder.Uri.ToString();
         }
