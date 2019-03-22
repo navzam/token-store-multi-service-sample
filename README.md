@@ -64,3 +64,124 @@ One of the outputs of the deployment will be the Token Vault's redirect URI (`to
 
 ### Use the web app
 Navigate to the App Service resource and click on the URL to open the application.
+
+## Sample explanation
+
+### Code structure
+
+Here are the most relevant files and their roles in the sample:
+
+- `Pages/Index.*`: The Razor Page for the main page of the app, where users log in to the app and connect to other services
+- `Pages/Login.*`: The Razor Page that handles user log in to the app
+- `Pages/PostAuth.*`: The Razor Page that handles the post-login redirect from Token Vault (after the auth flow for connecting to a service)
+- `TokenVault/TokenVaultClient.cs`: A wrapper around the Token Vault runtime API
+- `TokenVault/Token.cs`: Models used to deserialize the responses from the Token Vault API
+
+### App authentication
+
+Before the user can connect to various services, they must log in to the app itself, giving the app a user identity that it can later associate with the connected accounts. The sample implements authentication via AAD v2 using standard ASP.NET Core practices. It does not use Token Vault for this step. See [Startup.cs](./TokenVaultMultiService/Startup.cs) and [AzureAdAuthenticationBuilderExtensions.cs](./TokenVaultMultiService/Extensions/AzureAdAuthenticationBuilderExtensions.cs) to see how this is implemented.
+
+### Naming tokens
+
+A token resource within Token Vault represents a single access token to a specific service. When creating a token resource, you must provide a name for it. The name must be unique (for a given service) and is used to refer to the token in other Token Vault API calls. It is also used in the login URLs that users click on, so it should **not** be a secret value such as the session ID.
+
+The token name can be used to associate the token with a specific user of the app. The sample uses the object ID of the logged in user to name the tokens. The object ID comes from a token claim for the user:
+
+```csharp
+// Index.cshtml.cs -> OnGetAsync()
+
+var objectId = this.User.FindFirst("http://schemas.microsoft.com/identity/claims/objectidentifier").Value;
+```
+
+Then the object ID is used to create and refer to the token in Token Vault:
+
+```csharp
+// Index.cshtml.cs -> OnGetAsync()
+
+var tokenVaultDropboxToken = await GetOrCreateTokenVaultTokenResourceAsync(tokenVaultClient, "dropbox", objectId);
+```
+
+We use the same object ID to name all of that user's tokens, which is okay since the name only needs to be unique per service.
+
+### Determining whether a service is connected
+
+The token resource has a status field that tells whether the token is in a valid state. Before the user logs in, the token will be in an error state because it does not have an access token. Even if the user has logged in, it is possible for the token to re-enter an error state in the future. For example, if the user manually revokes authorization from your app, the next token refresh will fail.
+
+The sample uses the token status to determine whether the user has connected to each service and show the appropriate UI. Specifically, it checks whether `Status.State` is "Ok":
+
+```csharp
+this.DropboxData.IsConnected = tokenVaultDropboxToken.Status.State.ToLower() == "ok";
+```
+
+If the state is "Error", you could check `Status.Error` for more details, but the sample does not do this. Anything other than "Ok" will result in the service showing as "Disconnected" with a link to log in.
+
+### Protecting against phishing attacks
+
+The [Token Vault GitHub repo](https://github.com/azure/azure-tokens) has a page describing a [phishing attack vulnerability](https://github.com/Azure/azure-tokens/blob/master/docs/phishing-attack-vulnerability.md) that you should protect against. The sample implements the mitigation described on that page.
+
+Before starting the login flow, we save the token name (i.e. user's object ID) in the session state:
+
+```csharp
+// Index.cshtml.cs -> OnGetAsync()
+
+this.HttpContext.Session.SetString("tvId", objectId);
+```
+
+> NOTE: The sample uses an in-memory session for simplicity, but this is not an appropriate implementation for production.
+
+As part of the login URLs to connect to services, we include a post-login redirect URL to which Token Vault will redirect after the auth flow:
+
+```csharp
+// Index.cshtml.cs -> OnGetAsync()
+
+var postAuthRedirectUrl = GetPostAuthRedirectUrl("dropbox", objectId);
+this.DropboxData.LoginUrl = $"{tokenVaultDropboxToken.LoginUri}?PostLoginRedirectUrl={Uri.EscapeDataString(postAuthRedirectUrl)}";
+```
+
+Since we use the same redirect URL for every service and every user, the redirect handler will need to know the service name and token name, which we include as parameters when building the redirect URL:
+
+```csharp
+// Index.cshtml.cs -> GetPostAuthRedirectUrl()
+
+var uriBuilder = new UriBuilder("https", this.Request.Host.Host, this.Request.Host.Port.GetValueOrDefault(-1), "postauth");
+uriBuilder.Query = $"serviceId={serviceId}&tokenId={tokenId}";
+```
+
+After the user clicks on a login URL and authorizes access, the redirect handler checks whether the token name that we're handling matches the token name we saved in the session state earlier. If they are not equal, then the auth flow did not start from this session, so the handler quits immediately:
+
+```csharp
+// PostAuth.cshtml.cs -> OnGetAsync()
+
+string expectedTokenId = this.HttpContext.Session.GetString("tvId");
+string tokenId = this.HttpContext.Request.Query["tokenId"];
+if (tokenId != expectedTokenId)
+{
+    throw new InvalidOperationException("token ID does not match expected value, will not save");
+}
+```
+
+Otherwise, the verification passes, and the handler extracts the `code` given by Token Vault and calls "save" on the token resource. This commits the token in Token Vault and finalizes the auth flow:
+
+```csharp
+// PostAuth.cshtml.cs -> OnGetAsync()
+
+string code = this.HttpContext.Request.Query["code"];
+if (!String.IsNullOrWhiteSpace(code))
+{
+    ... // omitted creation of tokenVaultClient
+    string serviceId = this.HttpContext.Request.Query["serviceId"];
+    await tokenVaultClient.SaveTokenAsync(serviceId, tokenId, code);
+}
+```
+
+Note that if the `serviceId` parameter is altered by an attacker, then the save operation will fail because the `code` is only valid for a specific service and token.
+
+### Using the access token
+
+If all goes well, the token resource will contain an access token that we can use to call other APIs:
+
+```csharp
+// Index.cshtml.cs -> OnGetAsync()
+
+this.DropboxData.Files = await GetDropboxDocumentsAsync(tokenVaultDropboxToken.Value.AccessToken);
+```
