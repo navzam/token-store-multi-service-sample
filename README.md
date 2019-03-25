@@ -112,6 +112,8 @@ The token resource has a status field that tells whether the token is in a valid
 The sample uses the token status to determine whether the user has connected to each service and show the appropriate UI. Specifically, it checks whether `Status.State` is "Ok":
 
 ```csharp
+// Index.cshtml.cs -> OnGetAsync()
+
 this.DropboxData.IsConnected = tokenVaultDropboxToken.Status.State.ToLower() == "ok";
 ```
 
