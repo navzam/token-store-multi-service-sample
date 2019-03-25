@@ -98,7 +98,7 @@ Then the object ID is used to create and refer to the token in Token Vault:
 ```csharp
 // Index.cshtml.cs -> OnGetAsync()
 
-var tokenVaultDropboxToken = await GetOrCreateTokenVaultTokenResourceAsync(tokenVaultClient, "dropbox", objectId);
+var tokenVaultDropboxToken = await GetOrCreateTokenResourceAsync(tokenVaultClient, "dropbox", objectId);
 ```
 
 We use the same object ID to name all of that user's tokens, which is okay since the name only needs to be unique per service.
