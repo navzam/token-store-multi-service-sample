@@ -1,6 +1,8 @@
 # Token Vault Multi-Service Sample
 Sample web app that uses Token Vault to manage access tokens to multiple external services. Users must sign in to the app using a work or school account. Then they can authorize the app to access their files from O365 and/or Dropbox.
 
+![gif of sample being used](./assets/TokenVault.gif)
+
 ## Running the sample
 
 ### Register an AAD v2 app for app authentication
