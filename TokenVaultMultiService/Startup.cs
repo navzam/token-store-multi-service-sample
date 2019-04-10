@@ -12,6 +12,7 @@ using Microsoft.AspNetCore.HttpsPolicy;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.IdentityModel.Protocols.OpenIdConnect;
 
 namespace TokenVaultMultiService
 {
@@ -39,8 +40,19 @@ namespace TokenVaultMultiService
                 sharedOptions.DefaultScheme = CookieAuthenticationDefaults.AuthenticationScheme;
                 sharedOptions.DefaultChallengeScheme = OpenIdConnectDefaults.AuthenticationScheme;
             })
-            .AddAzureAd(options => Configuration.Bind("AzureAd", options))
-            .AddCookie();
+            .AddOpenIdConnect(options => {
+                var aadConfig = Configuration.GetSection("AzureAd");
+
+                options.ClientId = aadConfig.GetValue<string>("ClientId");
+                options.ClientSecret = aadConfig.GetValue<string>("ClientSecret");
+                options.Authority = "https://login.microsoftonline.com/common/v2.0";
+
+                options.TokenValidationParameters.ValidateIssuer = false; // disabled for multi-tenant since issuer could be any tenant
+                options.ResponseType = OpenIdConnectResponseType.Code;
+            })
+            .AddCookie(cookieOptions => {
+                cookieOptions.Cookie.Name = cookieOptions.Cookie.Name;
+            });
 
             // Add session state, backed by default in-memory cache
             services.AddDistributedMemoryCache();
