@@ -81,7 +81,7 @@ Here are the most relevant files and their roles in the sample:
 
 ### App authentication
 
-Before the user can connect to various services, they must log in to the app itself, giving the app a user identity that it can later associate with the connected accounts. The sample implements authentication via AAD v2 using standard ASP.NET Core practices. It does not use Token Vault for this step. See [Startup.cs](./TokenVaultMultiService/Startup.cs) and [AzureAdAuthenticationBuilderExtensions.cs](./TokenVaultMultiService/Extensions/AzureAdAuthenticationBuilderExtensions.cs) to see how this is implemented.
+Before the user can connect to various services, they must log in to the app itself, giving the app a user identity that it can later associate with the connected accounts. The sample implements authentication via AAD v2 using standard ASP.NET Core practices. It does not use Token Vault for this step. See [Startup.cs](./TokenVaultMultiService/Startup.cs) to see how this is implemented.
 
 ### Naming tokens
 
