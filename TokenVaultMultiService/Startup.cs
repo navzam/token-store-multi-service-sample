@@ -49,10 +49,7 @@ namespace TokenVaultMultiService
 
             // Add session state, backed by default in-memory cache
             services.AddDistributedMemoryCache();
-            services.AddSession(options =>
-            {
-                options.Cookie.HttpOnly = true;
-            });
+            services.AddSession();
 
             services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_2);
         }
