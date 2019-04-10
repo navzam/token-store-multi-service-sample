@@ -50,9 +50,7 @@ namespace TokenVaultMultiService
                 options.TokenValidationParameters.ValidateIssuer = false; // disabled for multi-tenant since issuer could be any tenant
                 options.ResponseType = OpenIdConnectResponseType.Code;
             })
-            .AddCookie(cookieOptions => {
-                cookieOptions.Cookie.Name = cookieOptions.Cookie.Name;
-            });
+            .AddCookie();
 
             // Add session state, backed by default in-memory cache
             services.AddDistributedMemoryCache();
