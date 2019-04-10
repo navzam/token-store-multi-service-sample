@@ -51,8 +51,6 @@ namespace TokenVaultMultiService
             services.AddDistributedMemoryCache();
             services.AddSession(options =>
             {
-                // Set a short timeout for easy testing
-                options.IdleTimeout = TimeSpan.FromMinutes(1);
                 options.Cookie.HttpOnly = true;
             });
 
