@@ -232,12 +232,8 @@
                     "location": "[parameters('webAppLocation')]",
                     "properties": {
                         "TokenVaultUrl": "[reference(variables('tokenVaultResourceId')).vaultUrl]",
-                        "AzureAd:TenantId": "common",
-                        "AzureAd:Instance": "https://login.microsoftonline.com/",
-                        "AzureAd:Domain": "microsoft.com",
                         "AzureAd:ClientId": "[parameters('aadAuthNClientId')]",
-                        "AzureAd:ClientSecret": "[parameters('aadAuthNClientSecret')]",
-                        "AzureAd:CallbackPath": "/signin-oidc"
+                        "AzureAd:ClientSecret": "[parameters('aadAuthNClientSecret')]"
                     },
                     "dependsOn": [
                         "[variables('webAppResourceId')]",
