@@ -231,7 +231,7 @@
                     "type": "config",
                     "location": "[parameters('webAppLocation')]",
                     "properties": {
-                        "TokenVaultUrl": "[reference(variables('tokenVaultResourceId')).vaultUrl]",
+                        "TokenVaultUrl": "[reference(variables('tokenVaultResourceId')).storeUrl]",
                         "AzureAd:ClientId": "[parameters('aadAuthNClientId')]",
                         "AzureAd:ClientSecret": "[parameters('aadAuthNClientSecret')]"
                     },
