@@ -73,15 +73,51 @@ Navigate to the App Service resource and click on the URL to open the applicatio
 
 Here are the most relevant files and their roles in the sample:
 
-- `Pages/Index.*`: The Razor Page for the main page of the app, where users log in to the app and connect to other services
-- `Pages/Login.*`: The Razor Page that handles user log in to the app
-- `Pages/PostAuth.*`: The Razor Page that handles the post-login redirect from Token Vault (after the auth flow for connecting to a service)
-- `TokenVault/TokenVaultClient.cs`: A wrapper around the Token Vault runtime API
-- `TokenVault/Token.cs`: Models used to deserialize the responses from the Token Vault API
+- `TokenVaultMultiService/Pages/Index.*`: The Razor Page for the main page of the app, where users log in to the app and connect to other services
+- `TokenVaultMultiService/Pages/Login.*`: The Razor Page that handles user log in to the app
+- `TokenVaultMultiService/Pages/PostAuth.*`: The Razor Page that handles the post-login redirect from Token Vault (after the auth flow for connecting to a service)
+- `TokenVaultMultiService/TokenVault/TokenVaultClient.cs`: A wrapper around the Token Vault runtime API
+- `TokenVaultMultiService/TokenVault/Token.cs`: Models used to deserialize the responses from the Token Vault API
+- `azuredeploy.json`: The ARM template that describes the Azure resources used in the sample
 
 ### App authentication
 
 Before the user can connect to various services, they must log in to the app itself, giving the app a user identity that it can later associate with the connected accounts. The sample implements authentication via AAD v2 using standard ASP.NET Core practices. It does not use Token Vault for this step. See [Startup.cs](./TokenVaultMultiService/Startup.cs) to see how this is implemented.
+
+### Granting web app access to Token Vault
+
+Token Vault has access policies that control who can perform certain runtime operations. The web app needs permissions to perform some of these runtime operations, such as creating and retrieving tokens. When the web app is deployed (see [azuredeploy.json](./azuredeploy.json)), the sample uses a [managed identity](https://docs.microsoft.com/en-us/azure/active-directory/managed-identities-azure-resources/overview) to give the web app an AAD identity:
+```json
+{
+    ...
+    "type": "Microsoft.Web/sites",
+    ...
+    "identity": {
+        "type": "SystemAssigned"
+    },
+    ...
+}
+```
+and then creates a Token Vault access policy for that identity:
+```json
+{
+    "type": "accessPolicies",
+    ...
+    "properties": {
+        "principal": {
+            "tenantId": "[reference(variables('webAppResourceId'), '2018-02-01', 'Full').identity.tenantId]",
+            "objectId": "[reference(variables('webAppResourceId'), '2018-02-01', 'Full').identity.principalId]"
+        },
+        "permissions": [
+            "Get",
+            "List",
+            "CreateOrUpdate",
+            "Delete"
+        ]
+    },
+    ...
+}
+```
 
 ### Naming tokens
 
