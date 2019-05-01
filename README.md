@@ -18,7 +18,7 @@ First you need to register an AAD v2 app, which will represent the web app's ide
 
 ### Register an AAD v2 app for Graph authorization
 
-Register another AAD v2 app by following the same steps as above. The web app will use this AAD app to get authorized access to the user's O365 files via the Graph APIs.
+Register another AAD v2 app by following the same steps as above. The web app will use this AAD app to get authorized access to the user's O365 files via the Microsoft Graph APIs.
 
 > Note: We need 2 separate AAD apps because the app authentication flow and Graph authorization flow will redirect to different domains, which is not allowed within a single AAD v2 app.
 
@@ -87,7 +87,7 @@ Before the user can connect to various services, they must log in to the app its
 
 A token resource within Token Vault represents a single access token to a specific service. When creating a token resource, you must provide a name for it. The name must be unique (for a given service) and is used to refer to the token in other Token Vault API calls. It is also used in the login URLs that users click on, so it should **not** be a secret value such as the session ID.
 
-The token name can be used to associate the token with a specific user of the app. The sample uses the object ID of the logged in user to name the tokens. The object ID comes from a token claim for the user:
+The token name can be used to associate the token with a specific user of the app. Since all users' tokens are under the same umbrella, the name is important for accessing the correct user's token. The sample uses the object ID of the logged in user to name the tokens. The object ID comes from a token claim for the user:
 
 ```csharp
 // Index.cshtml.cs -> OnGetAsync()
@@ -117,7 +117,7 @@ The sample uses the token status to determine whether the user has connected to 
 this.DropboxData.IsConnected = tokenVaultDropboxToken.Status.State.ToLower() == "ok";
 ```
 
-If the state is "Error", you could check `Status.Error` for more details, but the sample does not do this. Anything other than "Ok" will result in the service showing as "Disconnected" with a link to log in.
+If the state is "Error", you could check `Status.Error` for more details, but the sample does not do this. Instead, anything other than "Ok" will result in the service showing as "Disconnected" with a link to log in.
 
 ### Protecting against phishing attacks
 
@@ -151,7 +151,7 @@ var uriBuilder = new UriBuilder("https", this.Request.Host.Host, this.Request.Ho
 uriBuilder.Query = $"serviceId={serviceId}&tokenId={tokenId}";
 ```
 
-After the user clicks on a login URL and authorizes access, the redirect handler checks whether the token name that we're handling matches the token name we saved in the session state earlier. If they are not equal, then the auth flow did not start from this session, so the handler quits immediately:
+After the user clicks on a login URL and authorizes access, the redirect handler checks whether the token name passed to it matches the token name we saved in the session state earlier. If they are not equal, then the auth flow did not start from this session, so the handler quits immediately:
 
 ```csharp
 // PostAuth.cshtml.cs -> OnGetAsync()
