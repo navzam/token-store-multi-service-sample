@@ -11,7 +11,7 @@ using Microsoft.Azure.Services.AppAuthentication;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Graph;
 
-namespace TokenVaultMultiService.Pages
+namespace TokenStoreMultiService.Pages
 {
     public class FileProviderViewData
     {
@@ -49,48 +49,48 @@ namespace TokenVaultMultiService.Pages
             this.UserName = this.User.FindFirst("name").Value;
             var objectId = this.User.FindFirst("http://schemas.microsoft.com/identity/claims/objectidentifier").Value;
 
-            // Get an API token to access Token Vault
+            // Get an API token to access Token Store
             var azureServiceTokenProvider = new AzureServiceTokenProvider();
-            var tokenVaultApiToken = await azureServiceTokenProvider.GetAccessTokenAsync("https://tokenvault.azure.net");
-            var tokenVaultUrl = this._configuration["TokenVaultUrl"];
-            var tokenVaultClient = new TokenVault.TokenVaultClient(tokenVaultUrl, tokenVaultApiToken);
+            var tokenStoreApiToken = await azureServiceTokenProvider.GetAccessTokenAsync("https://tokenstore.azure.net");
+            var tokenStoreUrl = this._configuration["TokenStoreUrl"];
+            var tokenStoreClient = new TokenStore.TokenStoreClient(tokenStoreUrl, tokenStoreApiToken);
 
-            // Get Token Vault token resource for Dropbox for this user (and create it if it doesn't exist)
-            var tokenVaultDropboxToken = await GetOrCreateTokenResourceAsync(tokenVaultClient, "dropbox", objectId);
+            // Get Token Store token resource for Dropbox for this user (and create it if it doesn't exist)
+            var tokenStoreDropboxToken = await GetOrCreateTokenResourceAsync(tokenStoreClient, "dropbox", objectId);
 
             // Check Dropbox token status and set in view data
-            this.DropboxData.IsConnected = tokenVaultDropboxToken.Status.State.ToLower() == "ok";
+            this.DropboxData.IsConnected = tokenStoreDropboxToken.Status.State.ToLower() == "ok";
 
             // If connected, get data from Dropbox and set in view data
             if (this.DropboxData.IsConnected)
             {
-                this.DropboxData.Files = await GetDropboxDocumentsAsync(tokenVaultDropboxToken.Value.AccessToken);
+                this.DropboxData.Files = await GetDropboxDocumentsAsync(tokenStoreDropboxToken.Value.AccessToken);
             }
             // Otherwise, set Dropbox login URI in view data
             else
             {
                 var postAuthRedirectUrl = GetPostAuthRedirectUrl("dropbox", objectId);
-                this.DropboxData.LoginUrl = $"{tokenVaultDropboxToken.LoginUri}?PostLoginRedirectUrl={Uri.EscapeDataString(postAuthRedirectUrl)}";
+                this.DropboxData.LoginUrl = $"{tokenStoreDropboxToken.LoginUri}?PostLoginRedirectUrl={Uri.EscapeDataString(postAuthRedirectUrl)}";
             }
 
 
 
-            // Get Token Vault token resource for Graph for this user (and create it if it doesn't exist)
-            var tokenVaultGraphToken = await GetOrCreateTokenResourceAsync(tokenVaultClient, "graph", objectId);
+            // Get Token Store token resource for Graph for this user (and create it if it doesn't exist)
+            var tokenStoreGraphToken = await GetOrCreateTokenResourceAsync(tokenStoreClient, "graph", objectId);
 
             // Check Graph token status and set in view data
-            this.GraphData.IsConnected = tokenVaultGraphToken.Status.State.ToLower() == "ok";
+            this.GraphData.IsConnected = tokenStoreGraphToken.Status.State.ToLower() == "ok";
 
             // If connected, get data from Graph and set in view data
             if (this.GraphData.IsConnected)
             {
-                this.GraphData.Files = await GetGraphDocumentsAsync(tokenVaultGraphToken.Value.AccessToken);
+                this.GraphData.Files = await GetGraphDocumentsAsync(tokenStoreGraphToken.Value.AccessToken);
             }
             // Otherwise, set Graph login URI in view data
             else
             {
                 var redirectUrl = GetPostAuthRedirectUrl("graph", objectId);
-                this.GraphData.LoginUrl = $"{tokenVaultGraphToken.LoginUri}?PostLoginRedirectUrl={Uri.EscapeDataString(redirectUrl)}";
+                this.GraphData.LoginUrl = $"{tokenStoreGraphToken.LoginUri}?PostLoginRedirectUrl={Uri.EscapeDataString(redirectUrl)}";
             }
 
 
@@ -99,9 +99,9 @@ namespace TokenVaultMultiService.Pages
             this.HttpContext.Session.SetString("tvId", objectId);
         }
 
-        #region Token Vault API methods
+        #region Token Store API methods
 
-        private async Task<TokenVault.Token> GetOrCreateTokenResourceAsync(TokenVault.TokenVaultClient client, string serviceId, string tokenId)
+        private async Task<TokenStore.Token> GetOrCreateTokenResourceAsync(TokenStore.TokenStoreClient client, string serviceId, string tokenId)
         {
             var retrievedToken = await client.GetTokenResourceAsync(serviceId, tokenId);
             if (retrievedToken != null)
@@ -156,7 +156,7 @@ namespace TokenVaultMultiService.Pages
 
         #region Helper methods
 
-        // Constructs the post-auth redirect URL that we append to Token Vault login URLs
+        // Constructs the post-auth redirect URL that we append to Token Store login URLs
         private string GetPostAuthRedirectUrl(string serviceId, string tokenId)
         {
             var uriBuilder = new UriBuilder("https", this.Request.Host.Host, this.Request.Host.Port.GetValueOrDefault(-1), "postauth");

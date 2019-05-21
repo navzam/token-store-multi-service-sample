@@ -2,20 +2,20 @@
     "$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
     "contentVersion": "1.0.0.0",
     "parameters": {
-        "tokenVaultName": {
+        "tokenStoreName": {
             "type": "string",
             "metadata": {
-                "description": "Name of the Token Vault resource to be created"
+                "description": "Name of the Token Store resource to be created"
             }
         },
-        "tokenVaultLocation": {
+        "tokenStoreLocation": {
             "type": "string",
             "defaultValue": "West Central US",
             "allowedValues": [
                 "West Central US"
             ],
             "metadata": {
-                "description": "Azure location where the Token Vault resource will be deployed"
+                "description": "Azure location where the Token Store resource will be deployed"
             }
         },
         "webAppName": {
@@ -112,14 +112,14 @@
     },
     "variables": {
         "webAppResourceId": "[resourceId('Microsoft.Web/sites/', parameters('webAppName'))]",
-        "tokenVaultResourceId": "[resourceId('Microsoft.TokenVault/vaults/', parameters('tokenVaultName'))]"
+        "tokenStoreResourceId": "[resourceId('Microsoft.Token/stores/', parameters('tokenStoreName'))]"
     },
     "resources": [
         {
-            "type": "Microsoft.TokenVault/vaults",
-            "name": "[parameters('tokenVaultName')]",
+            "type": "Microsoft.Token/stores",
+            "name": "[parameters('tokenStoreName')]",
             "apiVersion": "2018-08-01-preview",
-            "location": "[parameters('tokenVaultLocation')]",
+            "location": "[parameters('tokenStoreLocation')]",
             "properties": {
                 "authorizedPostRedirectUrls": [
                     "[concat('https://', parameters('webAppName'), '.azurewebsites.net/')]"
@@ -144,7 +144,7 @@
                         ]
                     },
                     "dependsOn": [
-                        "[variables('tokenVaultResourceId')]"
+                        "[variables('tokenStoreResourceId')]"
                     ]
                 },
                 {
@@ -165,7 +165,7 @@
                         }
                     },
                     "dependsOn": [
-                        "[variables('tokenVaultResourceId')]"
+                        "[variables('tokenStoreResourceId')]"
                     ],
                     "resources": []
                 },
@@ -194,7 +194,7 @@
                         "tokenParameters": {}
                     },
                     "dependsOn": [
-                        "[variables('tokenVaultResourceId')]"
+                        "[variables('tokenStoreResourceId')]"
                     ],
                     "resources": []
                 }
@@ -231,13 +231,13 @@
                     "type": "config",
                     "location": "[parameters('webAppLocation')]",
                     "properties": {
-                        "TokenVaultUrl": "[reference(variables('tokenVaultResourceId')).storeUrl]",
+                        "TokenStoreUrl": "[reference(variables('tokenStoreResourceId')).storeUrl]",
                         "AzureAd:ClientId": "[parameters('aadAuthNClientId')]",
                         "AzureAd:ClientSecret": "[parameters('aadAuthNClientSecret')]"
                     },
                     "dependsOn": [
                         "[variables('webAppResourceId')]",
-                        "[variables('tokenVaultResourceId')]"
+                        "[variables('tokenStoreResourceId')]"
                     ]
                 },
                 {
@@ -258,9 +258,9 @@
         }
     ],
     "outputs": {
-        "TokenVaultRedirectUri": {
+        "TokenStoreRedirectUri": {
             "type": "string",
-            "value": "[reference(variables('tokenVaultResourceId'), '2018-08-01-preview').redirectUrl]",
+            "value": "[reference(variables('tokenStoreResourceId'), '2018-08-01-preview').redirectUrl]",
             "metadata": {
                 "description": "This URL must be whitelisted as a valid redirect URL in the services' app registrations"
             }

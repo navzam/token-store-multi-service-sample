@@ -1,7 +1,7 @@
-# Token Vault Multi-Service Sample
-Sample web app that uses Token Vault to manage access tokens to multiple external services. Users must sign in to the app using a work or school account. Then they can authorize the app to access their files from O365 and/or Dropbox.
+# Token Store Multi-Service Sample
+Sample web app that uses Token Store to manage access tokens to multiple external services. Users must sign in to the app using a work or school account. Then they can authorize the app to access their files from O365 and/or Dropbox.
 
-![gif of sample being used](./assets/TokenVault.gif)
+![gif of sample being used](./assets/TokenStore.gif)
 
 ## Running the sample
 
@@ -30,7 +30,7 @@ Similarly you need to register a Dropbox app. The web app will use this Dropbox 
     - Name: choose any name
 1. On the next page, note down the app key and app secret. You will need these later
 1. Leave the "Redirect URIs" field blank. You will fill this in later
-1. Set "Allow implicit grant" to "Disallow". Token Vault will use the authorization grant flow, so you can disable implicit flow to be safe
+1. Set "Allow implicit grant" to "Disallow". Token Store will use the authorization grant flow, so you can disable implicit flow to be safe
 
 ### Deploy the solution to Azure
 
@@ -39,13 +39,13 @@ Similarly you need to register a Dropbox app. The web app will use this Dropbox 
 This repository includes an ARM template that describes the necessary resources. You can easily deploy them to your Azure subscription using the button above. It will create 3 Azure resources:
 - App Service: Hosts the sample web app
 - App Service Plan: Defines the compute resources and pricing for the App Service
-- Token Vault: Stores and manages OAuth access tokens
+- Token Store: Stores and manages OAuth access tokens
 
 The template includes some paramters that you will have to fill in:
 
 Parameter               | Description
 ----------------------- | ------------------------------------------------------------------
-`tokenVaultName`        | Name of the Token Vault resource. Used in the Token Vault's URL
+`tokenStoreName`        | Name of the Token Store resource. Used in the Token Store's URL
 `webAppPlanName`        | Name for the App Service Plan resource
 `webAppName`            | Name for the App Service resource. Used in the web app's URL
 `dropboxAppId`          | App key assigned when you registered the Dropbox app
@@ -57,11 +57,11 @@ Parameter               | Description
 
 
 ### Set OAuth redirect URIs
-One of the outputs of the deployment will be the Token Vault's redirect URI (`tokenVaultRedirectUri`). You will also have the URL to your deployed web app. You need to add these redirect URIs to your AAD and Dropbox app registrations.
+One of the outputs of the deployment will be the Token Store's redirect URI (`tokenStoreRedirectUri`). You will also have the URL to your deployed web app. You need to add these redirect URIs to your AAD and Dropbox app registrations.
 
 1. Go back to the first AAD app (i.e. the one provided for `aadAuthNClientId`). Under `Authentication -> Redirect URIs`, add a redirect URI for your web app at `/signin-oidc` (for example, `https://mywebapp.azurewebsites.net/signin-oidc`)
-1. Go back to the second AAD app (i.e. the one provided for `aadGraphClientId`). Under `Authentication -> Redirect URIs`, add the Token Vault redirect URI
-1. Go back to the Dropbox app. Under `Redirect URIs`, add the Token Vault redirect URI
+1. Go back to the second AAD app (i.e. the one provided for `aadGraphClientId`). Under `Authentication -> Redirect URIs`, add the Token Store redirect URI
+1. Go back to the Dropbox app. Under `Redirect URIs`, add the Token Store redirect URI
 
 
 ### Use the web app
@@ -73,20 +73,20 @@ Navigate to the App Service resource and click on the URL to open the applicatio
 
 Here are the most relevant files and their roles in the sample:
 
-- `TokenVaultMultiService/Pages/Index.*`: The Razor Page for the main page of the app, where users log in to the app and connect to other services
-- `TokenVaultMultiService/Pages/Login.*`: The Razor Page that handles user log in to the app
-- `TokenVaultMultiService/Pages/PostAuth.*`: The Razor Page that handles the post-login redirect from Token Vault (after the auth flow for connecting to a service)
-- `TokenVaultMultiService/TokenVault/TokenVaultClient.cs`: A wrapper around the Token Vault runtime API
-- `TokenVaultMultiService/TokenVault/Token.cs`: Models used to deserialize the responses from the Token Vault API
+- `TokenStoreMultiService/Pages/Index.*`: The Razor Page for the main page of the app, where users log in to the app and connect to other services
+- `TokenStoreMultiService/Pages/Login.*`: The Razor Page that handles user log in to the app
+- `TokenStoreMultiService/Pages/PostAuth.*`: The Razor Page that handles the post-login redirect from Token Store (after the auth flow for connecting to a service)
+- `TokenStoreMultiService/TokenStore/TokenStoreClient.cs`: A wrapper around the Token Store runtime API
+- `TokenStoreMultiService/TokenStore/Token.cs`: Models used to deserialize the responses from the Token Store API
 - `azuredeploy.json`: The ARM template that describes the Azure resources used in the sample
 
 ### App authentication
 
-Before the user can connect to various services, they must log in to the app itself, giving the app a user identity that it can later associate with the connected accounts. The sample implements authentication via AAD v2 using standard ASP.NET Core practices. It does not use Token Vault for this step. See [Startup.cs](./TokenVaultMultiService/Startup.cs) to see how this is implemented.
+Before the user can connect to various services, they must log in to the app itself, giving the app a user identity that it can later associate with the connected accounts. The sample implements authentication via AAD v2 using standard ASP.NET Core practices. It does not use Token Store for this step. See [Startup.cs](./TokenStoreMultiService/Startup.cs) to see how this is implemented.
 
-### Granting web app access to Token Vault
+### Granting web app access to Token Store
 
-Token Vault has access policies that control who can perform certain runtime operations. The web app needs permissions to perform some of these runtime operations, such as creating and retrieving tokens. When the web app is deployed (see [azuredeploy.json](./azuredeploy.json)), the sample uses a [managed identity](https://docs.microsoft.com/en-us/azure/active-directory/managed-identities-azure-resources/overview) to give the web app an AAD identity:
+Token Store has access policies that control who can perform certain runtime operations. The web app needs permissions to perform some of these runtime operations, such as creating and retrieving tokens. When the web app is deployed (see [azuredeploy.json](./azuredeploy.json)), the sample uses a [managed identity](https://docs.microsoft.com/en-us/azure/active-directory/managed-identities-azure-resources/overview) to give the web app an AAD identity:
 ```json
 {
     ...
@@ -98,7 +98,7 @@ Token Vault has access policies that control who can perform certain runtime ope
     ...
 }
 ```
-and then creates a Token Vault access policy for that identity:
+and then creates a Token Store access policy for that identity:
 ```json
 {
     "type": "accessPolicies",
@@ -121,7 +121,7 @@ and then creates a Token Vault access policy for that identity:
 
 ### Naming tokens
 
-A token resource within Token Vault represents a single access token to a specific service. When creating a token resource, you must provide a name for it. The name must be unique (for a given service) and is used to refer to the token in other Token Vault API calls. It is also used in the login URLs that users click on, so it should **not** be a secret value such as the session ID.
+A token resource within Token Store represents a single access token to a specific service. When creating a token resource, you must provide a name for it. The name must be unique (for a given service) and is used to refer to the token in other Token Store API calls. It is also used in the login URLs that users click on, so it should **not** be a secret value such as the session ID.
 
 The token name can be used to associate the token with a specific user of the app. Since all users' tokens are under the same umbrella, the name is important for accessing the correct user's token. The sample uses the object ID of the logged in user to name the tokens. The object ID comes from a token claim for the user:
 
@@ -131,12 +131,12 @@ The token name can be used to associate the token with a specific user of the ap
 var objectId = this.User.FindFirst("http://schemas.microsoft.com/identity/claims/objectidentifier").Value;
 ```
 
-Then the object ID is used to create and refer to the token in Token Vault:
+Then the object ID is used to create and refer to the token in Token Store:
 
 ```csharp
 // Index.cshtml.cs -> OnGetAsync()
 
-var tokenVaultDropboxToken = await GetOrCreateTokenResourceAsync(tokenVaultClient, "dropbox", objectId);
+var tokenStoreDropboxToken = await GetOrCreateTokenResourceAsync(tokenStoreClient, "dropbox", objectId);
 ```
 
 We use the same object ID to name all of that user's tokens, which is okay since the name only needs to be unique per service.
@@ -150,14 +150,14 @@ The sample uses the token status to determine whether the user has connected to 
 ```csharp
 // Index.cshtml.cs -> OnGetAsync()
 
-this.DropboxData.IsConnected = tokenVaultDropboxToken.Status.State.ToLower() == "ok";
+this.DropboxData.IsConnected = tokenStoreDropboxToken.Status.State.ToLower() == "ok";
 ```
 
 If the state is "Error", you could check `Status.Error` for more details, but the sample does not do this. Instead, anything other than "Ok" will result in the service showing as "Disconnected" with a link to log in.
 
 ### Protecting against phishing attacks
 
-The [Token Vault GitHub repo](https://github.com/azure/azure-tokens) has a page describing a [phishing attack vulnerability](https://github.com/Azure/azure-tokens/blob/master/docs/phishing-attack-vulnerability.md) that you should protect against. The sample implements the mitigation described on that page.
+The [Token Store GitHub repo](https://github.com/azure/azure-tokens) has a page describing a [phishing attack vulnerability](https://github.com/Azure/azure-tokens/blob/master/docs/phishing-attack-vulnerability.md) that you should protect against. The sample implements the mitigation described on that page.
 
 Before starting the login flow, we save the token name (i.e. user's object ID) in the session state:
 
@@ -169,13 +169,13 @@ this.HttpContext.Session.SetString("tvId", objectId);
 
 > NOTE: The sample uses an in-memory session for simplicity, but this is not an appropriate implementation for production.
 
-As part of the login URLs to connect to services, we include a post-login redirect URL to which Token Vault will redirect after the auth flow:
+As part of the login URLs to connect to services, we include a post-login redirect URL to which Token Store will redirect after the auth flow:
 
 ```csharp
 // Index.cshtml.cs -> OnGetAsync()
 
 var postAuthRedirectUrl = GetPostAuthRedirectUrl("dropbox", objectId);
-this.DropboxData.LoginUrl = $"{tokenVaultDropboxToken.LoginUri}?PostLoginRedirectUrl={Uri.EscapeDataString(postAuthRedirectUrl)}";
+this.DropboxData.LoginUrl = $"{tokenStoreDropboxToken.LoginUri}?PostLoginRedirectUrl={Uri.EscapeDataString(postAuthRedirectUrl)}";
 ```
 
 Since we use the same redirect URL for every service and every user, the redirect handler will need to know the service name and token name, which we include as parameters when building the redirect URL:
@@ -200,7 +200,7 @@ if (tokenId != expectedTokenId)
 }
 ```
 
-Otherwise, the verification passes, and the handler extracts the `code` given by Token Vault and calls "save" on the token resource. This commits the token in Token Vault and finalizes the auth flow:
+Otherwise, the verification passes, and the handler extracts the `code` given by Token Store and calls "save" on the token resource. This commits the token in Token Store and finalizes the auth flow:
 
 ```csharp
 // PostAuth.cshtml.cs -> OnGetAsync()
@@ -208,9 +208,9 @@ Otherwise, the verification passes, and the handler extracts the `code` given by
 string code = this.HttpContext.Request.Query["code"];
 if (!String.IsNullOrWhiteSpace(code))
 {
-    ... // omitted creation of tokenVaultClient
+    ... // omitted creation of tokenStoreClient
     string serviceId = this.HttpContext.Request.Query["serviceId"];
-    await tokenVaultClient.SaveTokenAsync(serviceId, tokenId, code);
+    await tokenStoreClient.SaveTokenAsync(serviceId, tokenId, code);
 }
 ```
 
@@ -223,5 +223,5 @@ If all goes well, the token resource will contain an access token that we can us
 ```csharp
 // Index.cshtml.cs -> OnGetAsync()
 
-this.DropboxData.Files = await GetDropboxDocumentsAsync(tokenVaultDropboxToken.Value.AccessToken);
+this.DropboxData.Files = await GetDropboxDocumentsAsync(tokenStoreDropboxToken.Value.AccessToken);
 ```

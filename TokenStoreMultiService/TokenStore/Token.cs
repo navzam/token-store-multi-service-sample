@@ -1,4 +1,4 @@
-﻿namespace TokenVaultMultiService.TokenVault
+﻿namespace TokenStoreMultiService.TokenStore
 {
     public class Token
     {
