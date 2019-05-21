@@ -67,7 +67,7 @@
         },
         "webAppGitHubUrl": {
             "type": "string",
-            "defaultValue": "https://github.com/navzam/token-vault-multi-service-sample"
+            "defaultValue": "https://github.com/navzam/token-store-multi-service-sample"
         },
         "webAppGitHubBranch": {
             "type": "string",
