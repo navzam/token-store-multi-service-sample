@@ -264,6 +264,13 @@
             "metadata": {
                 "description": "This URL must be whitelisted as a valid redirect URL in the services' app registrations"
             }
+        },
+        "WebAppRedirectUri": {
+            "type": "string",
+            "value": "[concat('https://', parameters('webAppName'), '.azurewebsites.net/signin-oidc')]",
+            "metadata": {
+                "description": "Web app redirect URI after the user authenticates to the web app"
+            }
         }
     }
 }

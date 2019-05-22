@@ -57,9 +57,9 @@ Parameter               | Description
 
 
 ### Set OAuth redirect URIs
-One of the outputs of the deployment will be the Token Store's redirect URI (`tokenStoreRedirectUri`). You will also have the URL to your deployed web app. You need to add these redirect URIs to your AAD and Dropbox app registrations.
+One of the outputs of the deployment will be the Token Store's redirect URI (`tokenStoreRedirectUri`), which should look like `https://mytokenstore.westcentralus.tokenstore.azure.net/redirect`. Another output will be the web app's redirect URI (`webAppRedirectUri`), which should look like `https://mywebapp.azurewebsites.net/signin-oidc`. You need to add these redirect URIs to your AAD and Dropbox app registrations.
 
-1. Go back to the first AAD app (i.e. the one provided for `aadAuthNClientId`). Under `Authentication -> Redirect URIs`, add a redirect URI for your web app at `/signin-oidc` (for example, `https://mywebapp.azurewebsites.net/signin-oidc`)
+1. Go back to the first AAD app (i.e. the one provided for `aadAuthNClientId`). Under `Authentication -> Redirect URIs`, add the web app redirect URI
 1. Go back to the second AAD app (i.e. the one provided for `aadGraphClientId`). Under `Authentication -> Redirect URIs`, add the Token Store redirect URI
 1. Go back to the Dropbox app. Under `Redirect URIs`, add the Token Store redirect URI
 
