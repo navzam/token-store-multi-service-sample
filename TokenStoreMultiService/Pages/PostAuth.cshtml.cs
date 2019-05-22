@@ -7,7 +7,7 @@ using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.Azure.Services.AppAuthentication;
 using Microsoft.Extensions.Configuration;
 
-namespace TokenVaultMultiService.Pages
+namespace TokenStoreMultiService.Pages
 {
     public class PostAuthModel : PageModel
     {
@@ -33,15 +33,15 @@ namespace TokenVaultMultiService.Pages
             string code = this.HttpContext.Request.Query["code"];
             if (!String.IsNullOrWhiteSpace(code))
             {
-                // Set up Token Vault client
+                // Set up Token Store client
                 var azureServiceTokenProvider = new AzureServiceTokenProvider();
-                string tokenVaultApiToken = await azureServiceTokenProvider.GetAccessTokenAsync("https://tokenvault.azure.net");
-                string tokenVaultUrl = this._configuration["TokenVaultUrl"];
-                var tokenVaultClient = new TokenVault.TokenVaultClient(tokenVaultUrl, tokenVaultApiToken);
+                string tokenStoreApiToken = await azureServiceTokenProvider.GetAccessTokenAsync("https://tokenstore.azure.net");
+                string tokenStoreUrl = this._configuration["TokenStoreUrl"];
+                var tokenStoreClient = new TokenStore.TokenStoreClient(tokenStoreUrl, tokenStoreApiToken);
 
-                // Call "save" on Token Vault to verify the auth flow and finalize the token
+                // Call "save" on Token Store to verify the auth flow and finalize the token
                 string serviceId = this.HttpContext.Request.Query["serviceId"];
-                await tokenVaultClient.SaveTokenAsync(serviceId, tokenId, code);
+                await tokenStoreClient.SaveTokenAsync(serviceId, tokenId, code);
             }
 
             return this.RedirectToPage("Index");

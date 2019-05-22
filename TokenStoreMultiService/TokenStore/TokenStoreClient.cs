@@ -6,18 +6,18 @@ using System.Threading.Tasks;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
-namespace TokenVaultMultiService.TokenVault
+namespace TokenStoreMultiService.TokenStore
 {
-    public class TokenVaultClient
+    public class TokenStoreClient
     {
-        private string vaultUrl;
+        private string storeUrl;
         private string apiToken;
 
         private static readonly HttpClient httpClient = new HttpClient();
 
-        public TokenVaultClient(string vaultUrl, string apiToken)
+        public TokenStoreClient(string storeUrl, string apiToken)
         {
-            this.vaultUrl = vaultUrl;
+            this.storeUrl = storeUrl;
             this.apiToken = apiToken;
         }
 
@@ -34,9 +34,9 @@ namespace TokenVaultMultiService.TokenVault
 
             var response = await httpClient.SendAsync(request);
             var responseStr = await response.Content.ReadAsStringAsync();
-            var tokenVaultToken = JsonConvert.DeserializeObject<Token>(responseStr);
+            var tokenStoreToken = JsonConvert.DeserializeObject<Token>(responseStr);
 
-            return tokenVaultToken;
+            return tokenStoreToken;
         }
 
         public async Task<Token> GetTokenResourceAsync(string serviceId, string tokenId)
@@ -52,14 +52,14 @@ namespace TokenVaultMultiService.TokenVault
             }
 
             var responseStr = await response.Content.ReadAsStringAsync();
-            var tokenVaultToken = JsonConvert.DeserializeObject<Token>(responseStr);
+            var tokenStoreToken = JsonConvert.DeserializeObject<Token>(responseStr);
 
-            return tokenVaultToken;
+            return tokenStoreToken;
         }
 
         public async Task SaveTokenAsync(string serviceId, string tokenId, string code)
         {
-            var uriBuilder = new UriBuilder(this.vaultUrl);
+            var uriBuilder = new UriBuilder(this.storeUrl);
             uriBuilder.Path = $"/services/{serviceId}/tokens/{tokenId}/save";
             var request = new HttpRequestMessage(HttpMethod.Post, uriBuilder.Uri);
             request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", this.apiToken);
@@ -80,7 +80,7 @@ namespace TokenVaultMultiService.TokenVault
 
         private Uri GetTokenUri(string serviceId, string tokenId)
         {
-            var uriBuilder = new UriBuilder(this.vaultUrl);
+            var uriBuilder = new UriBuilder(this.storeUrl);
             uriBuilder.Path = $"/services/{serviceId}/tokens/{tokenId}";
             return uriBuilder.Uri;
         }

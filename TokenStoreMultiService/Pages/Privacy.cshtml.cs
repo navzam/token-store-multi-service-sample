@@ -1,6 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc.RazorPages;
 
-namespace TokenVaultMultiService.Pages
+namespace TokenStoreMultiService.Pages
 {
     public class PrivacyModel : PageModel
     {
