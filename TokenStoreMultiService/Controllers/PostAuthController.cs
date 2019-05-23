@@ -1,25 +1,25 @@
-﻿using System;
+using System;
 using System.Net.Http;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.Azure.Services.AppAuthentication;
 using Microsoft.Extensions.Configuration;
 
-namespace TokenStoreMultiService.Pages
+namespace TokenStoreMultiService.Controllers
 {
-    public class PostAuthModel : PageModel
+    [Route("[controller]")]
+    public class PostAuthController : Controller
     {
         private readonly IConfiguration _configuration;
         private static HttpClient _httpClient = new HttpClient();
 
-        public PostAuthModel(IConfiguration configuration)
+        public PostAuthController(IConfiguration configuration)
         {
             this._configuration = configuration;
         }
 
-        public async Task<IActionResult> OnGetAsync()
+        public async Task<ActionResult> Index()
         {
             string expectedTokenId = this.HttpContext.Session.GetString("tvId");
             string tokenId = this.HttpContext.Request.Query["tokenId"];
@@ -44,7 +44,7 @@ namespace TokenStoreMultiService.Pages
                 await tokenStoreClient.SaveTokenAsync(serviceId, tokenId, code);
             }
 
-            return this.RedirectToPage("Index");
+            return this.RedirectToPage("/Index");
         }
     }
 }
