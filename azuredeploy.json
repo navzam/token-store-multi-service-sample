@@ -188,7 +188,7 @@
                                 "TokenBodyTemplate": "client_id={ClientId}&scope={Scopes}&code={Code}&redirect_uri={RedirectUrl}&grant_type=authorization_code&client_secret={ClientSecret}",
                                 "RefreshUrlTemplate": "https://login.microsoftonline.com/common/oauth2/v2.0/token",
                                 "RefreshBodyTemplate": "client_id={ClientId}&scope={Scopes}&refresh_token={RefreshToken}&redirect_uri={RedirectUrl}&grant_type=refresh_token&client_secret={ClientSecret}",
-                                "Scopes": "Files.Read"
+                                "Scopes": "Files.Read offline_access"
                             }
                         },
                         "tokenParameters": {}
