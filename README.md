@@ -10,7 +10,7 @@ First you need to register an AAD v2 app, which will represent the web app's ide
 
 1. Go to the [AAD app registration page](https://ms.portal.azure.com/#blade/Microsoft_AAD_IAM/ActiveDirectoryMenuBlade/RegisteredAppsPreview) and click "New registration"
     - Name: choose any name
-    - Supported accont types: Accounts in any organizational directory and personal Microsoft accounts
+    - Supported account types: Accounts in any organizational directory and personal Microsoft accounts
 
     Don't specify a redirect URI yet. You will fill this in later.
 1. On the next page, note down the `Application ID`. You will need this later
@@ -41,7 +41,7 @@ This repository includes an ARM template that describes the necessary resources.
 - App Service Plan: Defines the compute resources and pricing for the App Service
 - Token Store: Stores and manages OAuth access tokens
 
-The template includes some paramters that you will have to fill in:
+The template includes some parameters that you will have to fill in:
 
 Parameter               | Description
 ----------------------- | ------------------------------------------------------------------
@@ -66,6 +66,8 @@ One of the outputs of the deployment will be the Token Store's redirect URI (`to
 
 ### Use the web app
 Navigate to the App Service resource and click on the URL to open the application.
+
+IMPORTANT: You MUST accept the privacy and cookie use policy at the top of the page for login to work.
 
 ## Sample explanation
 
