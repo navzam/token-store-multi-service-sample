@@ -76,8 +76,8 @@ IMPORTANT: You MUST accept the privacy and cookie use policy at the top of the p
 Here are the most relevant files and their roles in the sample:
 
 - `TokenStoreMultiService/Pages/Index.*`: The Razor Page for the main page of the app, where users log in to the app and connect to other services
-- `TokenStoreMultiService/Pages/Login.*`: The Razor Page that handles user log in to the app
-- `TokenStoreMultiService/Pages/PostAuth.*`: The Razor Page that handles the post-login redirect from Token Store (after the auth flow for connecting to a service)
+- `TokenStoreMultiService/Controllers/LoginController.cs`: The controller that handles user log in to the app
+- `TokenStoreMultiService/Controllers/PostAuthController.cs`: The controller that handles the post-login redirect from Token Store (after the auth flow for connecting to a service)
 - `TokenStoreMultiService/TokenStore/TokenStoreClient.cs`: A wrapper around the Token Store runtime API
 - `TokenStoreMultiService/TokenStore/Token.cs`: Models used to deserialize the responses from the Token Store API
 - `azuredeploy.json`: The ARM template that describes the Azure resources used in the sample
