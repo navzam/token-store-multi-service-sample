@@ -23,7 +23,7 @@ namespace TokenStoreMultiService.Controllers
         {
             string expectedTokenId = this.HttpContext.Session.GetString("tvId");
             string tokenId = this.HttpContext.Request.Query["tokenId"];
-            if (tokenId != expectedTokenId)
+            if (String.IsNullOrWhiteSpace(tokenId) || tokenId != expectedTokenId)
             {
                 // Call is coming from a different session, so it will not be allowed
                 throw new InvalidOperationException("token ID does not match expected value, will not save");
