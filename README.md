@@ -67,8 +67,6 @@ One of the outputs of the deployment will be the Token Store's redirect URI (`to
 ### Use the web app
 Navigate to the App Service resource and click on the URL to open the application.
 
-IMPORTANT: You MUST accept the privacy and cookie use policy at the top of the page for login to work.
-
 ## Sample explanation
 
 ### Code structure
@@ -170,6 +168,8 @@ this.HttpContext.Session.SetString("tvId", objectId);
 ```
 
 > NOTE: The sample uses an in-memory session for simplicity, but this is not an appropriate implementation for production.
+
+> NOTE: [GDPR support in ASP.NET Core](https://docs.microsoft.com/en-us/aspnet/core/security/gdpr?view=aspnetcore-2.2) includes a cookie consent feature that users must accept before "non-essential" cookies will work. For simplicity, the sample marks the session cookie (which is necessary for security and not used for tracking) as "essential." However, if you extend the sample to include session-based tracking, you should be aware of the implications. See the doc linked above for more info.
 
 As part of the login URLs to connect to services, we include a post-login redirect URL to which Token Store will redirect after the auth flow:
 

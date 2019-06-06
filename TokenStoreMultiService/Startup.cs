@@ -49,7 +49,9 @@ namespace TokenStoreMultiService
 
             // Add session state, backed by default in-memory cache
             services.AddDistributedMemoryCache();
-            services.AddSession();
+            services.AddSession(sessionOptions => {
+                sessionOptions.Cookie.IsEssential = true;
+            });
 
             services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_2);
         }
