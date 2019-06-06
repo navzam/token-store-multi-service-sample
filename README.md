@@ -20,7 +20,7 @@ First you need to register an AAD v2 app, which will represent the web app's ide
 
 Register another AAD v2 app by following the same steps as above. The web app will use this AAD app to get authorized access to the user's O365 files via the Microsoft Graph APIs.
 
-> Note: We need 2 separate AAD apps because the app authentication flow and Graph authorization flow will redirect to different domains, which is not allowed within a single AAD v2 app.
+> **Note**: We need 2 separate AAD apps because the app authentication flow and Graph authorization flow will redirect to different domains, which is not allowed within a single AAD v2 app.
 
 ### Register a Dropbox app
 Similarly you need to register a Dropbox app. The web app will use this Dropbox app to get authorized access to the user's Dropbox files.
@@ -84,7 +84,7 @@ Here are the most relevant files and their roles in the sample:
 
 Before the user can connect to various services, they must log in to the app itself, giving the app a user identity that it can later associate with the connected accounts. The sample implements authentication via AAD v2 using standard ASP.NET Core practices. It does not use Token Store for this step. See [Startup.cs](./TokenStoreMultiService/Startup.cs) to see how this is implemented.
 
-### Granting web app access to Token Store
+### Granting the web app access to Token Store
 
 Token Store has access policies that control who can perform certain runtime operations. The web app needs permissions to perform some of these runtime operations, such as creating and retrieving tokens. When the web app is deployed (see [azuredeploy.json](./azuredeploy.json)), the sample uses a [managed identity](https://docs.microsoft.com/en-us/azure/active-directory/managed-identities-azure-resources/overview) to give the web app an AAD identity:
 ```json
@@ -167,9 +167,9 @@ Before starting the login flow, we save the token name (i.e. user's object ID) i
 this.HttpContext.Session.SetString("tvId", objectId);
 ```
 
-> NOTE: The sample uses an in-memory session for simplicity, but this is not an appropriate implementation for production.
+> **NOTE**: The sample uses an in-memory session for simplicity, but this is not an appropriate implementation for production.
 
-> NOTE: [GDPR support in ASP.NET Core](https://docs.microsoft.com/en-us/aspnet/core/security/gdpr?view=aspnetcore-2.2) includes a cookie consent feature that users must accept before "non-essential" cookies will work. For simplicity, the sample marks the session cookie (which is necessary for security and not used for tracking) as "essential." However, if you extend the sample to include session-based tracking, you should be aware of the implications. See the doc linked above for more info.
+> **NOTE**: [GDPR support in ASP.NET Core](https://docs.microsoft.com/en-us/aspnet/core/security/gdpr?view=aspnetcore-2.2) includes a cookie consent feature that users must accept before "non-essential" cookies will work. For simplicity, the sample marks the session cookie (which is necessary for security and not used for tracking) as "essential." However, if you extend the sample to include session-based tracking, you should be aware of the implications. See the doc linked above for more info.
 
 As part of the login URLs to connect to services, we include a post-login redirect URL to which Token Store will redirect after the auth flow:
 
